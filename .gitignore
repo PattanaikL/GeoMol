@@ -1,0 +1,16 @@
+# IDE
+.idea/
+
+.mypy_cache/
+.pytest_cache/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Distribution and packaging
+*.egg-info/
+.eggs/
+
+# Jupyter
+.ipynb_checkpoints/
