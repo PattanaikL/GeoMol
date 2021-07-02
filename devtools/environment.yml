@@ -2,15 +2,16 @@ name: GeoMol
 channels:
   - rdkit
   - conda-forge
+  - anaconda
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=4.5=1_gnu
   - blas=1.0=mkl
   - bzip2=1.0.8=h7b6447c_0
-  - ca-certificates=2021.5.25=h06a4308_1
+  - ca-certificates=2020.10.14=0
   - cairo=1.16.0=hf32fb01_1
-  - certifi=2021.5.30=py37h06a4308_0
+  - certifi=2020.6.20=py37_0
   - cycler=0.10.0=py37_0
   - dbus=1.13.18=hb2f20db_0
   - decorator=4.4.2=pyhd3eb1b0_0
@@ -65,7 +66,7 @@ dependencies:
   - python-dateutil=2.8.1=pyhd3eb1b0_0
   - python_abi=3.7=2_cp37m
   - pytz=2021.1=pyhd3eb1b0_0
-  - pyyaml=5.4.1=py37h27cfd23_1
+  - pyyaml=5.3.1=py37h7b6447c_1
   - qt=5.9.7=h5867ecd_1
   - rdkit=2020.09.1.0=py37hd50e099_1
   - readline=8.1=h27cfd23_0
