@@ -54,7 +54,7 @@ like a pentavalent phosphorus, but this wasn't a priority for us.
 
 We can't deal with disconnected fragments (i.e. there is a "." in the SMILES).
 
-This model is not going to work on macrocycles.
+This code will work poorly for macrocycles.
 
 To ensure correct predictions, ALL tetrahedral chiral centers must be specified. There's probably a way to automate the
 specification of "rigid" chiral centers (e.g. in a fused ring), which I'll hopefully figure out soon, but I'm grad
