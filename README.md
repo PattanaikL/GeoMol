@@ -40,6 +40,8 @@ mols in the `trained_model_dir` directory (unless you provide the `out` arg):
 
 `python generate_confs.py --trained_model_dir trained_models/qm9/ --test_csv data/QM9/test_smiles.csv --dataset qm9`
 
+You can use the provided `visualize_confs.ipynb` jupyter notebook to visualize the generated conformers.
+
 ## Additional comments
 
 ### Training
