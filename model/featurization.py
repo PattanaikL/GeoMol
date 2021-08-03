@@ -348,4 +348,6 @@ def featurize_mol_from_smiles(smiles, dataset='qm9'):
 
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, neighbors=neighbor_dict, chiral_tag=chiral_tag,
                 name=smiles)
+    data.edge_index_dihedral_pairs = get_dihedral_pairs(data.edge_index, data=data)
+
     return data
