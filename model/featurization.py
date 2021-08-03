@@ -51,9 +51,28 @@ class geom_confs(Dataset):
         #     smiles = [list(data_dict)[i] for i in self.split]
         #     self.pickle_files = [data_dict[smi] for smi in smiles]
         # except FileNotFoundError:
+        self.dihedral_pairs = {} # for memoization
         all_files = sorted(glob.glob(osp.join(self.root, '*.pickle')))
         self.pickle_files = [f for i, f in enumerate(all_files) if i in self.split]
         self.max_confs = max_confs
+
+    def len(self):
+        # return len(self.pickle_files)  # should we change this to an integer for random sampling?
+        return 10000 if self.split_idx == 0 else 1000
+
+    def get(self, idx):
+        data = None
+        while not data:
+            pickle_file = random.choice(self.pickle_files)
+            mol_dic = self.open_pickle(pickle_file)
+            data = self.featurize_mol(mol_dic)
+
+        if idx in self.dihedral_pairs:
+            data.edge_index_dihedral_pairs = self.dihedral_pairs[idx]
+        else:
+            data.edge_index_dihedral_pairs = get_dihedral_pairs(data.edge_index, data=data)
+
+        return data
 
     def open_pickle(self, mol_path):
         with open(mol_path, "rb") as f:
@@ -186,18 +205,6 @@ class geom_confs(Dataset):
                     degeneracy=conf['degeneracy'], mol=correct_mol, pos_mask=pos_mask)
         return data
 
-    def len(self):
-        # return len(self.pickle_files)  # should we change this to an integer for random sampling?
-        return 10000 if self.split_idx == 0 else 1000
-
-    def get(self, idx):
-        data = None
-        while not data:
-            pickle_file = random.choice(self.pickle_files)
-            mol_dic = self.open_pickle(pickle_file)
-            data = self.featurize_mol(mol_dic)
-
-        return data
 
 
 class qm9_confs(geom_confs):

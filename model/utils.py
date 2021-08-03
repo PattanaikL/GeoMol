@@ -71,7 +71,7 @@ def get_leaf_hydrogens(neighbors, x):
     return leaf_hydrogens
 
 
-def get_dihedral_pairs(edge_index, neighbors, data):
+def get_dihedral_pairs(edge_index, data):
     """
     Given edge indices, return pairs of indices that we must calculate dihedrals for
     """
