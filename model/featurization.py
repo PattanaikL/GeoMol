@@ -13,6 +13,7 @@ import torch
 import torch.nn.functional as F
 from torch_scatter import scatter
 from torch_geometric.data import Dataset, Data, DataLoader
+from model.utils import get_dihedral_pairs
 
 dihedral_pattern = Chem.MolFromSmarts('[*]~[*]~[*]~[*]')
 chirality = {ChiralType.CHI_TETRAHEDRAL_CW: -1.,
