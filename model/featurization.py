@@ -86,6 +86,7 @@ class geom_confs(Dataset):
         name = mol_dic["smiles"]
 
         # filter mols rdkit can't intrinsically handle
+        # Simple and typical canonical process
         mol_ = Chem.MolFromSmiles(name)
         if mol_:
             canonical_smi = Chem.MolToSmiles(mol_)
@@ -97,7 +98,7 @@ class geom_confs(Dataset):
             return None
 
         # skip conformers without dihedrals
-        N = confs[0]['rd_mol'].GetNumAtoms()
+        N = confs[0]['rd_mol'].GetNumAtoms() # why not use mol_ from smiles directly? qcxia's question
         if N < 4:
             return None
         if confs[0]['rd_mol'].GetNumBonds() < 4:
@@ -106,14 +107,14 @@ class geom_confs(Dataset):
             return None
 
         pos = torch.zeros([self.max_confs, N, 3])
-        pos_mask = torch.zeros(self.max_confs, dtype=torch.int64)
+        pos_mask = torch.zeros(self.max_confs, dtype=torch.int64) # say max_confs=2, it should be tensor[0,0] with shape(2)
         k = 0
         for conf in confs:
-            mol = conf['rd_mol']
+            mol = conf['rd_mol'] # still, why must use the pre-sampled conf? - Because it'll be used afterwards
 
             # skip mols with atoms with more than 4 neighbors for now
             n_neighbors = [len(a.GetNeighbors()) for a in mol.GetAtoms()]
-            if np.max(n_neighbors) > 4:
+            if np.max(n_neighbors) > 4: # cannot deal with atoms with degree > 4 (like 5-value P)
                 continue
 
             # filter for conformers that may have reacted
@@ -125,11 +126,12 @@ class geom_confs(Dataset):
             if conf_canonical_smi != canonical_smi:
                 continue
 
+            # extract confs into pos from pre-sampled in pickle
             pos[k] = torch.tensor(mol.GetConformer().GetPositions(), dtype=torch.float)
             pos_mask[k] = 1
             k += 1
             correct_mol = mol
-            if k == self.max_confs:
+            if k == self.max_confs: # only extract first max_confs' confs (say max_confs=2, while have 5 confs in pickle, we only extract the first 2)
                 break
 
         # return None if no non-reactive conformers were found
@@ -143,15 +145,15 @@ class geom_confs(Dataset):
         neighbor_dict = {}
         ring = correct_mol.GetRingInfo()
         for i, atom in enumerate(correct_mol.GetAtoms()):
-            type_idx.append(self.types[atom.GetSymbol()])
+            type_idx.append(self.types[atom.GetSymbol()]) # symbol(str) to atomic rank (0,1,2,3,4) (int)
             n_ids = [n.GetIdx() for n in atom.GetNeighbors()]
-            if len(n_ids) > 1:
+            if len(n_ids) > 1: # non-terminal atom
                 neighbor_dict[i] = torch.tensor(n_ids)
             chiral_tag.append(chirality[atom.GetChiralTag()])
             atomic_number.append(atom.GetAtomicNum())
             atom_features.extend([atom.GetAtomicNum(),
                                   1 if atom.GetIsAromatic() else 0])
-            atom_features.extend(one_k_encoding(atom.GetDegree(), [0, 1, 2, 3, 4, 5, 6]))
+            atom_features.extend(one_k_encoding(atom.GetDegree(), [0, 1, 2, 3, 4, 5, 6])) # one-hot
             atom_features.extend(one_k_encoding(atom.GetHybridization(), [
                                     Chem.rdchem.HybridizationType.SP,
                                     Chem.rdchem.HybridizationType.SP2,
@@ -201,6 +203,7 @@ class geom_confs(Dataset):
         x2 = torch.tensor(atom_features).view(N, -1)
         x = torch.cat([x1.to(torch.float), x2], dim=-1)
 
+        # embed into each dataset
         data = Data(x=x, z=z, pos=[pos], edge_index=edge_index, edge_attr=edge_attr, neighbors=neighbor_dict,
                     chiral_tag=chiral_tag, name=name, boltzmann_weight=conf['boltzmannweight'],
                     degeneracy=conf['degeneracy'], mol=correct_mol, pos_mask=pos_mask)
@@ -274,7 +277,7 @@ def featurize_mol_from_smiles(smiles, dataset='qm9'):
         return None
     N = mol.GetNumAtoms()
 
-    # filter out mols model can't make predictions for
+    # filter out mols model can't make predictions for, which have no rotatable bonds
     if not mol.HasSubstructMatch(dihedral_pattern):
         return None
     if N < 4:
@@ -346,6 +349,7 @@ def featurize_mol_from_smiles(smiles, dataset='qm9'):
     x2 = torch.tensor(atom_features).view(N, -1)
     x = torch.cat([x1.to(torch.float), x2], dim=-1)
 
+    # For prediction, only x,edge_index, edge_attr, neighbors, chiral tag and name(smiles) will be written into dataset
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, neighbors=neighbor_dict, chiral_tag=chiral_tag,
                 name=smiles)
     data.edge_index_dihedral_pairs = get_dihedral_pairs(data.edge_index, data=data)

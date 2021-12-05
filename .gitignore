@@ -14,3 +14,16 @@ __pycache__/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# submit
+train.sh
+generate_confs.sh
+
+# dataset
+data/
+
+# debugging
+.vscode/
+
+# trained_models
+test_run/

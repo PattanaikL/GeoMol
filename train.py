@@ -17,25 +17,30 @@ import resource
 rlimit = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (4096, rlimit[1]))
 # torch.multiprocessing.set_sharing_strategy('file_system')
+# torch.multiprocessing.set_start_method('spawn', force=True)
 
 # add training args
 args = parse_train_args()
 
 logger = create_logger('train', args.log_dir)
 logger.info('Arguments are...')
+# To print the input values to args
 for arg in vars(args):
     logger.info(f'{arg}: {getattr(args, arg)}')
 
 # seeds
+# seed default is 0
 torch.manual_seed(args.seed)
 random.seed(args.seed)
 np.random.seed(args.seed)
 
 # construct loader and set device
+# --dataset is used here to determine which dataloader to use
 train_loader, val_loader = construct_loader(args)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # build model
+# --restart_dir is needed to be announced if using restart, which should be the same as log_dir
 if args.restart_dir:
     with open(f'{args.restart_dir}/model_parameters.yml') as f:
         model_parameters = yaml.full_load(f)

@@ -77,7 +77,7 @@ class GeoMol(nn.Module):
             self.n_model_confs = n_model_confs
             self.assign_neighborhoods(data.x, data.edge_index, data.edge_attr, data.batch, data)
             self.generate_model_prediction(data.x, data.edge_index, data.edge_attr, data.batch, data.chiral_tag)
-            return
+            return # end if just inference
 
         x, edge_index, edge_attr, pos_list, batch, pos_mask, chiral_tag = \
            data.x, data.edge_index, data.edge_attr, data.pos, data.batch, data.pos_mask, data.chiral_tag
@@ -176,7 +176,10 @@ class GeoMol(nn.Module):
         for i, (a, n) in enumerate(self.neighbors.items()):
             self.x_to_h_map[a] = i
             self.neighbor_mask[i, 0:len(n)] = 1
-            self.leaf_hydrogens[a] = self.leaf_hydrogens[a] * True if self.leaf_hydrogens[a].sum() > 1 else self.leaf_hydrogens[a] * False
+            # self.leaf_hydrogens[a] = self.leaf_hydrogens[a] * True if self.leaf_hydrogens[a].sum() > 1 else self.leaf_hydrogens[a] * False
+            # qcxia
+            self.leaf_hydrogens[a] = (self.leaf_hydrogens[a].to('cpu') * True if self.leaf_hydrogens[a].sum() > 1 else self.leaf_hydrogens[a].to('cpu') * False).to(self.device)
+            #######
             self.neighborhood_to_mol_map[i] = batch[a]
 
         # maps which atom in (x,y) corresponds to the same atom in (y,x) for each dihedral pair
@@ -195,8 +198,17 @@ class GeoMol(nn.Module):
 
         for i, (s, e) in enumerate(self.dihedral_pairs.t()):
             # this indicates which neighbor is the correct x <--> y map (see overleaf doc)
-            self.x_map_to_neighbor_y[i, 0:len(self.neighbors[s.item()])] = self.neighbors[s.item()] == e
-            self.y_map_to_neighbor_x[i, 0:len(self.neighbors[e.item()])] = self.neighbors[e.item()] == s
+            # self.x_map_to_neighbor_y[i, 0:len(self.neighbors[s.item()])] = self.neighbors[s.item()] == e             
+            # self.y_map_to_neighbor_x[i, 0:len(self.neighbors[e.item()])] = self.neighbors[e.item()] == s
+            
+            ## add by qcxia to solve cuda, cpu problem ##
+            # self.x_map_to_neighbor_y[i, 0:len(self.neighbors[s.item()])] = self.neighbors[s.item()].to(device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')) == e             
+            # self.y_map_to_neighbor_x[i, 0:len(self.neighbors[e.item()])] = self.neighbors[e.item()].to(device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')) == s
+
+            self.x_map_to_neighbor_y[i, 0:len(self.neighbors[s.item()])] = self.neighbors[s.item()].to(self.device) == e             
+            self.y_map_to_neighbor_x[i, 0:len(self.neighbors[e.item()])] = self.neighbors[e.item()].to(self.device) == s
+
+            #############################################
 
             # create dihedral masks
             self.dihedral_x_mask[i, :] = self.neighbor_mask[self.x_to_h_map[s].long()]
@@ -204,7 +216,11 @@ class GeoMol(nn.Module):
 
             self.neighborhood_pairs_to_mol_map[i] = batch[s]
 
-            attr_idx = torch.where(torch.sum(self.dihedral_pairs.t()[i] == edge_index.t(), dim=1) == 2)[0][0]
+            # attr_idx = torch.where(torch.sum(self.dihedral_pairs.t()[i] == edge_index.t(), dim=1) == 2)[0][0]
+            # qcxia
+            attr_idx = torch.where(torch.sum(self.dihedral_pairs.t()[i] == edge_index.t().to(self.device), dim=1) == 2)[0][0]
+            #######
+
             self.xy_bond_type[i] = edge_attr[attr_idx, :4]  # these are the bond type indices
 
         # calculate dihedral mask
@@ -218,12 +234,21 @@ class GeoMol(nn.Module):
         # rand_dist = torch.distributions.uniform.Uniform(torch.tensor([0.0]), torch.tensor([1.0]))
         rand_x = rand_dist.sample([x.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device) # added squeeze
         rand_edge = rand_dist.sample([edge_attr.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device) # added squeeze
-        x = torch.cat([x.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_x], dim=-1)
-        edge_attr = torch.cat([edge_attr.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_edge], dim=-1)
+        # x = torch.cat([x.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_x], dim=-1)
+        # edge_attr = torch.cat([edge_attr.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_edge], dim=-1)
+        #qcxia
+        x = torch.cat([x.unsqueeze(1).repeat(1, self.n_model_confs, 1).to(self.device), rand_x], dim=-1)
+        edge_attr = torch.cat([edge_attr.unsqueeze(1).repeat(1, self.n_model_confs, 1).to(self.device), rand_edge], dim=-1)
+        ######
 
         # gnn
-        x1, _ = self.gnn(x, edge_index, edge_attr)
-        x2, _ = self.gnn2(x, edge_index, edge_attr)
+        # x1, _ = self.gnn(x, edge_index, edge_attr)
+        # x2, _ = self.gnn2(x, edge_index, edge_attr)
+
+        # qcxia
+        x1, _ = self.gnn(x.to(self.device), edge_index.to(self.device), edge_attr)
+        x2, _ = self.gnn2(x.to(self.device), edge_index.to(self.device), edge_attr)
+        #######
 
         if self.global_transformer:
 

@@ -21,8 +21,7 @@ def train(model, loader, optimizer, device, scheduler, logger, epoch, writer):
 
         result = model(data) if epoch > 1 else model(data, ignore_neighbors=True)
         result.backward()
-
-        # clip the gradients
+  
         nn.utils.clip_grad_norm_(model.parameters(), max_norm=10, norm_type=2)
 
         if logger:
