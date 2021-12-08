@@ -1,8 +1,15 @@
+# Choose the GPU card with largest memory 
+import torch
+from manager_torch import GPUManager
+gm = GPUManager()
+torch.cuda.set_device(gm.auto_choice(mode=0))
+# 0:largest free memory; 1: highest free memory rate; 2:highest power
+# default is to use largest free memory
+
 from argparse import ArgumentParser
 import math
 import os
 import yaml
-import torch
 import numpy as np
 import random
 
@@ -45,7 +52,7 @@ if args.restart_dir:
     with open(f'{args.restart_dir}/model_parameters.yml') as f:
         model_parameters = yaml.full_load(f)
     model = GeoMol(**model_parameters).to(device)
-    state_dict = torch.load(f'{args.restart_dir}/best_model.pt', map_location=torch.device('cpu'))
+    state_dict = torch.load(f'{args.restart_dir}/best_model.pt', map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
     model.load_state_dict(state_dict, strict=True)
 
 else:

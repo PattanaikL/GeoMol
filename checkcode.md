@@ -26,6 +26,7 @@ _This warning message exists either at the start and EOF of the output/log file_
 >   return _VF.cartesian_prod(tensors)  # type: ignore[attr-defined]
 
 - ampere problem, will increase the computation time
+- **This can be solved by changing the cuda toolkit used by PyTorch with 11.x**
 
 ***
 - process for dataloader enumeration

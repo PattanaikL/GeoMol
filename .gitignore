@@ -27,3 +27,8 @@ data/
 
 # trained_models
 test_run/
+work_models/
+
+# others
+tmp/
+test_mols

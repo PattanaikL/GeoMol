@@ -1,4 +1,4 @@
-name: GeoMol-cuda
+name: GeoMol-cuda11x
 channels:
   - rdkit
   - pytorch
@@ -31,7 +31,7 @@ dependencies:
   - chardet=3.0.4=py37h06a4308_1003
   - click=8.0.3=pyhd3eb1b0_0
   - cryptography=3.4.8=py37hd23ed53_0
-  - cudatoolkit=10.2.89=hfd86e86_1
+  - cudatoolkit=11.0.221=h6bb024c_0
   - cycler=0.10.0=py37_0
   - dbus=1.13.18=hb2f20db_0
   - decorator=4.4.2=pyhd3eb1b0_0
@@ -140,7 +140,7 @@ dependencies:
   - python=3.7.10=h12debd9_4
   - python-dateutil=2.8.1=pyhd3eb1b0_0
   - python_abi=3.7=2_cp37m
-  - pytorch=1.7.0=py3.7_cuda10.2.89_cudnn7.6.5_0
+  - pytorch=1.7.0=py3.7_cuda11.0.221_cudnn8.0.3_0
   - pytz=2021.1=pyhd3eb1b0_0
   - pyyaml=5.3.1=py37h7b6447c_1
   - pyzmq=22.1.0=py37h336d617_0
@@ -166,7 +166,7 @@ dependencies:
   - testpath=0.5.0=pyhd8ed1ab_0
   - tk=8.6.10=hbc83047_0
   - torchaudio=0.7.0=py37
-  - torchvision=0.8.0=py37_cu102
+  - torchvision=0.8.0=py37_cu110
   - tornado=6.1=py37h27cfd23_0
   - tqdm=4.61.1=pyhd3eb1b0_1
   - traitlets=5.0.5=py_0
@@ -182,7 +182,7 @@ dependencies:
   - zeromq=4.3.4=h9c3ff4c_0
   - zipp=3.4.1=pyhd8ed1ab_0
   - zlib=1.2.11=h7b6447c_3
-  - zstd=1.4.5=h9ceee32_0
+  - zstd=1.4.9=haebb681_0
   - pip:
     - ase==3.22.1
     - cached-property==1.5.2
@@ -195,6 +195,7 @@ dependencies:
     - joblib==1.1.0
     - llvmlite==0.37.0
     - numba==0.54.1
+    - pyinstrument==4.1.1
     - python-louvain==0.15
     - rdflib==6.0.2
     - scikit-learn==1.0.1
@@ -205,4 +206,4 @@ dependencies:
     - torch-sparse==0.6.9
     - torch-spline-conv==1.2.1
     - urllib3==1.26.7
-prefix: /pubhome/qcxia02/miniconda3/envs/GeoMol
+prefix: /pubhome/qcxia02/miniconda3/envs/GeoMol-cuda11x

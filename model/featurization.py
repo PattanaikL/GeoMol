@@ -58,8 +58,8 @@ class geom_confs(Dataset):
         self.max_confs = max_confs
 
     def len(self):
-        # return len(self.pickle_files)  # should we change this to an integer for random sampling?
-        return 10000 if self.split_idx == 0 else 1000
+        return len(self.pickle_files)  # should we change this to an integer for random sampling?
+        # return 10000 if self.split_idx == 0 else 1000
 
     def get(self, idx):
         data = None

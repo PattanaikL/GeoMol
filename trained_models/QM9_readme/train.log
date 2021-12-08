@@ -1,0 +1,570 @@
+Arguments are...
+log_dir: ./test_run
+data_dir: data/QM9/qm9/
+split_path: data/QM9/splits/split0.npy
+trained_local_model: None
+restart_dir: None
+dataset: qm9
+seed: 0
+n_epochs: 250
+warmup_epochs: 2
+batch_size: 16
+lr: 0.001
+num_workers: 0
+optimizer: adam
+scheduler: plateau
+verbose: False
+model_dim: 25
+random_vec_dim: 10
+random_vec_std: 1
+random_alpha: False
+n_true_confs: 10
+n_model_confs: 10
+gnn1_depth: 3
+gnn1_n_layers: 2
+gnn2_depth: 3
+gnn2_n_layers: 2
+encoder_n_head: 2
+coord_pred_n_layers: 2
+d_mlp_n_layers: 1
+h_mol_mlp_n_layers: 1
+alpha_mlp_n_layers: 2
+c_mlp_n_layers: 1
+global_transformer: False
+loss_type: ot_emd
+teacher_force: False
+separate_opts: False
+
+Model parameters are:
+hyperparams:
+  model_dim: 25
+  random_vec_dim: 10
+  random_vec_std: 1
+  global_transformer: False
+  n_true_confs: 10
+  n_model_confs: 10
+  gnn1:
+    depth: 3
+    n_layers: 2
+  gnn2:
+    depth: 3
+    n_layers: 2
+  encoder:
+    n_head: 2
+  coord_pred:
+    n_layers: 2
+  d_mlp:
+    n_layers: 1
+  h_mol_mlp:
+    n_layers: 1
+  alpha_mlp:
+    n_layers: 2
+  c_mlp:
+    n_layers: 1
+  loss_type: ot_emd
+  teacher_force: False
+  random_alpha: False
+num_node_features: 44
+num_edge_features: 4
+
+
+Starting training...
+Epoch 1: Training Loss -0.6690634058833123
+Epoch 1: Validation Loss -0.442617720318219
+Epoch 2: Training Loss -1.2172348497033119
+Epoch 2: Validation Loss -1.3687822345703367
+Epoch 3: Training Loss -1.3935789281845092
+Epoch 3: Validation Loss -1.4353362075866214
+Epoch 4: Training Loss -1.4374032457351684
+Epoch 4: Validation Loss -1.4714420012065343
+Epoch 5: Training Loss -1.4869982484817506
+Epoch 5: Validation Loss -1.4976154641499595
+Epoch 6: Training Loss -1.5264433277130127
+Epoch 6: Validation Loss -1.5466086618484012
+Epoch 7: Training Loss -1.5401565328598021
+Epoch 7: Validation Loss -1.570612909301879
+Epoch 8: Training Loss -1.5398405052185058
+Epoch 8: Validation Loss -1.5171849822241164
+Epoch 9: Training Loss -1.5650311347961425
+Epoch 9: Validation Loss -1.569793528980679
+Epoch 10: Training Loss -1.5725279865264892
+Epoch 10: Validation Loss -1.5942374789525593
+Epoch 11: Training Loss -1.5762719867706299
+Epoch 11: Validation Loss -1.5816562194672843
+Epoch 12: Training Loss -1.5687524620056152
+Epoch 12: Validation Loss -1.6046723732872614
+Epoch 13: Training Loss -1.592374665260315
+Epoch 13: Validation Loss -1.5994188123279147
+Epoch 14: Training Loss -1.5921844776153564
+Epoch 14: Validation Loss -1.5804508867717924
+Epoch 15: Training Loss -1.578699365901947
+Epoch 15: Validation Loss -0.8908062198805431
+Epoch 16: Training Loss -1.0544110436439513
+Epoch 16: Validation Loss -1.4089933501349554
+Epoch 17: Training Loss -1.530154936981201
+Epoch 17: Validation Loss -1.5532151990466647
+Epoch 18: Training Loss -1.5686256525039672
+Epoch 18: Validation Loss -1.584643216360183
+Epoch 19: Training Loss -1.6043230220794678
+Epoch 19: Validation Loss -1.5689059477003793
+Epoch 20: Training Loss -1.6180911382675172
+Epoch 20: Validation Loss -1.6274453382643441
+Epoch 21: Training Loss -1.628235938835144
+Epoch 21: Validation Loss -1.6205712140552582
+Epoch 22: Training Loss -1.6290778913497925
+Epoch 22: Validation Loss -1.6426720827344865
+Epoch 23: Training Loss -1.6315589149475098
+Epoch 23: Validation Loss -1.633434668419853
+Epoch 24: Training Loss -1.640824599647522
+Epoch 24: Validation Loss -1.6484259802197654
+Epoch 25: Training Loss -1.6528914985656737
+Epoch 25: Validation Loss -1.6301540382324704
+Epoch 26: Training Loss -1.6462619012832642
+Epoch 26: Validation Loss -1.6433697730775862
+Epoch 27: Training Loss -1.6568477226257323
+Epoch 27: Validation Loss -1.653215247487265
+Epoch 28: Training Loss -1.644595993232727
+Epoch 28: Validation Loss -1.588817694830516
+Epoch 29: Training Loss -1.5779986156463623
+Epoch 29: Validation Loss -1.6119316816329956
+Epoch 30: Training Loss -1.637158097267151
+Epoch 30: Validation Loss -1.6448003526717898
+Epoch 31: Training Loss -1.6414563035964966
+Epoch 31: Validation Loss -1.622041450606452
+Epoch 32: Training Loss -1.6540203750610352
+Epoch 32: Validation Loss -1.652633059592474
+Epoch 33: Training Loss -1.659089870452881
+Epoch 33: Validation Loss -1.6675358821475317
+Epoch 34: Training Loss -1.6646089612960815
+Epoch 34: Validation Loss -1.6842357809581454
+Epoch 35: Training Loss -1.6640929401397706
+Epoch 35: Validation Loss -1.6726138383623153
+Epoch 36: Training Loss -1.6701471588134766
+Epoch 36: Validation Loss -1.6699960856210618
+Epoch 37: Training Loss -1.6712532529830932
+Epoch 37: Validation Loss -1.6841442111938718
+Epoch 38: Training Loss -1.6671053451538087
+Epoch 38: Validation Loss -1.660666997470553
+Epoch 39: Training Loss -1.676906896209717
+Epoch 39: Validation Loss -1.6594962260079762
+Epoch 40: Training Loss -1.678072373199463
+Epoch 40: Validation Loss -1.6648513684197077
+Epoch 41: Training Loss -1.6748988758087158
+Epoch 41: Validation Loss -1.628805156738039
+Epoch 42: Training Loss -1.674591093635559
+Epoch 42: Validation Loss -1.6688449326015653
+Epoch 43: Training Loss -1.6821294229507446
+Epoch 43: Validation Loss -1.68154143530225
+Epoch 44: Training Loss -1.6931966316223144
+Epoch 44: Validation Loss -1.6928850658356198
+Epoch 45: Training Loss -1.6951959079742431
+Epoch 45: Validation Loss -1.714932296011183
+Epoch 46: Training Loss -1.6979037094116212
+Epoch 46: Validation Loss -1.7034236590067546
+Epoch 47: Training Loss -1.695990823173523
+Epoch 47: Validation Loss -1.6902726226382785
+Epoch 48: Training Loss -1.6919811323165894
+Epoch 48: Validation Loss -1.691940182731265
+Epoch 49: Training Loss -1.689562413406372
+Epoch 49: Validation Loss -1.6958259400867282
+Epoch 50: Training Loss -1.690720071220398
+Epoch 50: Validation Loss -1.6918494739229717
+Epoch 51: Training Loss -1.690741678237915
+Epoch 51: Validation Loss -1.6855464965578109
+Epoch 52: Training Loss -1.6897540523529053
+Epoch 52: Validation Loss -1.698549194941445
+Epoch 53: Training Loss -1.6965792064666747
+Epoch 53: Validation Loss -1.7016819601967221
+Epoch 54: Training Loss -1.6958206756591796
+Epoch 54: Validation Loss -1.6786580274975489
+Epoch 55: Training Loss -1.6972426666259766
+Epoch 55: Validation Loss -1.7092251891181582
+Epoch 56: Training Loss -1.6968905027389527
+Epoch 56: Validation Loss -1.7066942945359245
+Epoch 57: Training Loss -1.7028685995101929
+Epoch 57: Validation Loss -1.711618463198344
+Epoch 58: Training Loss -1.7044545543670655
+Epoch 58: Validation Loss -1.7144717886334373
+Epoch 59: Training Loss -1.7066047174453736
+Epoch 59: Validation Loss -1.7015638105453006
+Epoch 60: Training Loss -1.701527261352539
+Epoch 60: Validation Loss -1.7013952561787196
+Epoch 61: Training Loss -1.704586651802063
+Epoch 61: Validation Loss -1.7065342115977453
+Epoch 62: Training Loss -1.7058228298187257
+Epoch 62: Validation Loss -1.7032825700820438
+Epoch 63: Training Loss -1.7000601888656617
+Epoch 63: Validation Loss -1.7018524692172097
+Epoch 64: Training Loss -1.7085081428527833
+Epoch 64: Validation Loss -1.7158129499072121
+Epoch 65: Training Loss -1.708895073699951
+Epoch 65: Validation Loss -1.697449763615926
+Epoch 66: Training Loss -1.7140871421813966
+Epoch 66: Validation Loss -1.716890321837531
+Epoch 67: Training Loss -1.7086707801818848
+Epoch 67: Validation Loss -1.7185900892530168
+Epoch 68: Training Loss -1.7123662540435791
+Epoch 68: Validation Loss -1.705903340899755
+Epoch 69: Training Loss -1.7118288061141969
+Epoch 69: Validation Loss -1.712396532770187
+Epoch 70: Training Loss -1.7120838958740234
+Epoch 70: Validation Loss -1.7136261652386378
+Epoch 71: Training Loss -1.7132349100112916
+Epoch 71: Validation Loss -1.7108448176156907
+Epoch 72: Training Loss -1.713218966293335
+Epoch 72: Validation Loss -1.7085049587582786
+Epoch 73: Training Loss -1.7083752744674683
+Epoch 73: Validation Loss -1.7127350322783939
+Epoch 74: Training Loss -1.7107172494888305
+Epoch 74: Validation Loss -1.711660831693619
+Epoch 75: Training Loss -1.7120271150588988
+Epoch 75: Validation Loss -1.7216773752182248
+Epoch 76: Training Loss -1.7143841344833375
+Epoch 76: Validation Loss -1.7199750041204787
+Epoch 77: Training Loss -1.7183926998138428
+Epoch 77: Validation Loss -1.7113600155663868
+Epoch 78: Training Loss -1.720610571861267
+Epoch 78: Validation Loss -1.7180259000687372
+Epoch 79: Training Loss -1.7203285737991334
+Epoch 79: Validation Loss -1.7218861693427676
+Epoch 80: Training Loss -1.7190661924362183
+Epoch 80: Validation Loss -1.7271865511697435
+Epoch 81: Training Loss -1.7223047031402587
+Epoch 81: Validation Loss -1.7190593424297513
+Epoch 82: Training Loss -1.7158934160232544
+Epoch 82: Validation Loss -1.7121332051262024
+Epoch 83: Training Loss -1.717153980064392
+Epoch 83: Validation Loss -1.7159288421509757
+Epoch 84: Training Loss -1.719084649848938
+Epoch 84: Validation Loss -1.7240813005538214
+Epoch 85: Training Loss -1.719541397857666
+Epoch 85: Validation Loss -1.723787720241244
+Epoch 86: Training Loss -1.723086490058899
+Epoch 86: Validation Loss -1.7153257945227245
+Epoch 87: Training Loss -1.7202437753677369
+Epoch 87: Validation Loss -1.7200468154180617
+Epoch 88: Training Loss -1.7182768692016601
+Epoch 88: Validation Loss -1.7245562322556027
+Epoch 89: Training Loss -1.720094072341919
+Epoch 89: Validation Loss -1.7206756614503407
+Epoch 90: Training Loss -1.721884758377075
+Epoch 90: Validation Loss -1.7180101190294539
+Epoch 91: Training Loss -1.7216364015579224
+Epoch 91: Validation Loss -1.7269135202680315
+Epoch 92: Training Loss -1.7235362829208374
+Epoch 92: Validation Loss -1.7301367369909135
+Epoch 93: Training Loss -1.722214623451233
+Epoch 93: Validation Loss -1.7220412379219419
+Epoch 94: Training Loss -1.722950199508667
+Epoch 94: Validation Loss -1.7302324506971571
+Epoch 95: Training Loss -1.7261156536102296
+Epoch 95: Validation Loss -1.7222786611980863
+Epoch 96: Training Loss -1.7230609432220458
+Epoch 96: Validation Loss -1.7236425044044617
+Epoch 97: Training Loss -1.724370153236389
+Epoch 97: Validation Loss -1.730679226300073
+Epoch 98: Training Loss -1.7239688926696777
+Epoch 98: Validation Loss -1.720597094959683
+Epoch 99: Training Loss -1.7246786499023437
+Epoch 99: Validation Loss -1.7247830969946725
+Epoch 100: Training Loss -1.7200784004211427
+Epoch 100: Validation Loss -1.7300440035169087
+Epoch 101: Training Loss -1.7253509693145752
+Epoch 101: Validation Loss -1.7208669923600697
+Epoch 102: Training Loss -1.7260005025863647
+Epoch 102: Validation Loss -1.7191818876871987
+Epoch 103: Training Loss -1.7232598300933837
+Epoch 103: Validation Loss -1.7270573358687142
+Epoch 104: Training Loss -1.727931180381775
+Epoch 104: Validation Loss -1.7316288702071658
+Epoch 105: Training Loss -1.7276662343978881
+Epoch 105: Validation Loss -1.736482756478446
+Epoch 106: Training Loss -1.731521259689331
+Epoch 106: Validation Loss -1.7259219809183999
+Epoch 107: Training Loss -1.7264680210113525
+Epoch 107: Validation Loss -1.7308681900539096
+Epoch 108: Training Loss -1.7283126720428468
+Epoch 108: Validation Loss -1.7361570199330647
+Epoch 109: Training Loss -1.7269780540466309
+Epoch 109: Validation Loss -1.7264446871621268
+Epoch 110: Training Loss -1.7265465974807739
+Epoch 110: Validation Loss -1.7222294372225564
+Epoch 111: Training Loss -1.725180319595337
+Epoch 111: Validation Loss -1.7259363976735917
+Epoch 112: Training Loss -1.7271933197021485
+Epoch 112: Validation Loss -1.725068383746677
+Epoch 113: Training Loss -1.7257358812332153
+Epoch 113: Validation Loss -1.7201303357169742
+Epoch 114: Training Loss -1.7236068910598754
+Epoch 114: Validation Loss -1.7253082839269487
+Epoch 115: Training Loss -1.7271321800231934
+Epoch 115: Validation Loss -1.7202279719095381
+Epoch 116: Training Loss -1.7318600038528442
+Epoch 116: Validation Loss -1.7285413779909649
+Epoch 117: Training Loss -1.7251615886688232
+Epoch 117: Validation Loss -1.7328991397978768
+Epoch 118: Training Loss -1.7303556901931763
+Epoch 118: Validation Loss -1.7276984812721374
+Epoch 119: Training Loss -1.7277846332550049
+Epoch 119: Validation Loss -1.7231306216073414
+Epoch 120: Training Loss -1.725592378616333
+Epoch 120: Validation Loss -1.7227994184645394
+Epoch 121: Training Loss -1.7293427717208862
+Epoch 121: Validation Loss -1.7284977644208879
+Epoch 122: Training Loss -1.7331744054794311
+Epoch 122: Validation Loss -1.7258125997724987
+Epoch 123: Training Loss -1.7277327444076538
+Epoch 123: Validation Loss -1.7407462048152136
+Epoch 124: Training Loss -1.7264293504714965
+Epoch 124: Validation Loss -1.7362740796709817
+Epoch 125: Training Loss -1.7272908502578734
+Epoch 125: Validation Loss -1.7352514304811992
+Epoch 126: Training Loss -1.7276516077041626
+Epoch 126: Validation Loss -1.7356744796510726
+Epoch 127: Training Loss -1.7279359272003174
+Epoch 127: Validation Loss -1.7346734489713396
+Epoch 128: Training Loss -1.7289709497451782
+Epoch 128: Validation Loss -1.7312856117884319
+Epoch 129: Training Loss -1.7288408014297485
+Epoch 129: Validation Loss -1.7351916252620636
+Epoch 130: Training Loss -1.7299306716918945
+Epoch 130: Validation Loss -1.7271782519325378
+Epoch 131: Training Loss -1.7270665189743042
+Epoch 131: Validation Loss -1.7304797323923262
+Epoch 132: Training Loss -1.7280125381469726
+Epoch 132: Validation Loss -1.7295689677435255
+Epoch 133: Training Loss -1.728942371559143
+Epoch 133: Validation Loss -1.7275698639097667
+Epoch 134: Training Loss -1.7272627243041991
+Epoch 134: Validation Loss -1.7183525978572785
+Epoch 135: Training Loss -1.7287011098861695
+Epoch 135: Validation Loss -1.7321466396725367
+Epoch 136: Training Loss -1.7275242658615113
+Epoch 136: Validation Loss -1.7232224014070299
+Epoch 137: Training Loss -1.7325469928741455
+Epoch 137: Validation Loss -1.7473565945549616
+Epoch 138: Training Loss -1.7273137439727784
+Epoch 138: Validation Loss -1.7293586522813826
+Epoch 139: Training Loss -1.7312262121200561
+Epoch 139: Validation Loss -1.7187866540182204
+Epoch 140: Training Loss -1.7301707221984863
+Epoch 140: Validation Loss -1.7258160681951613
+Epoch 141: Training Loss -1.735687984275818
+Epoch 141: Validation Loss -1.736407713284568
+Epoch 142: Training Loss -1.7303905462265015
+Epoch 142: Validation Loss -1.7252656826897272
+Epoch 143: Training Loss -1.7306646535873413
+Epoch 143: Validation Loss -1.7240463533098735
+Epoch 144: Training Loss -1.7290877590179443
+Epoch 144: Validation Loss -1.726366571017674
+Epoch 145: Training Loss -1.7284644275665284
+Epoch 145: Validation Loss -1.7261241674423218
+Epoch 146: Training Loss -1.7298634632110597
+Epoch 146: Validation Loss -1.737970444891188
+Epoch 147: Training Loss -1.7302138151168822
+Epoch 147: Validation Loss -1.734256180505904
+Epoch 148: Training Loss -1.729552774810791
+Epoch 148: Validation Loss -1.7299236229487829
+Epoch 149: Training Loss -1.7290335708618163
+Epoch 149: Validation Loss -1.7362978288105555
+Epoch 150: Training Loss -1.729846991920471
+Epoch 150: Validation Loss -1.7285863842282976
+Epoch 151: Training Loss -1.7297427894592285
+Epoch 151: Validation Loss -1.7191464333307176
+Epoch 152: Training Loss -1.7334110570907593
+Epoch 152: Validation Loss -1.725910953113011
+Epoch 153: Training Loss -1.730651234817505
+Epoch 153: Validation Loss -1.7397649080034285
+Epoch 154: Training Loss -1.7309255228042602
+Epoch 154: Validation Loss -1.7342244064997112
+Epoch 155: Training Loss -1.731189712524414
+Epoch 155: Validation Loss -1.7267228951529852
+Epoch 156: Training Loss -1.7310854061126708
+Epoch 156: Validation Loss -1.7304720594769432
+Epoch 157: Training Loss -1.7325399198532105
+Epoch 157: Validation Loss -1.7346791350652302
+Epoch 158: Training Loss -1.728116693687439
+Epoch 158: Validation Loss -1.7398953002596658
+Epoch 159: Training Loss -1.731335774230957
+Epoch 159: Validation Loss -1.7218411025546847
+Epoch 160: Training Loss -1.7325972797393798
+Epoch 160: Validation Loss -1.737737320718311
+Epoch 161: Training Loss -1.7307016078948974
+Epoch 161: Validation Loss -1.7277089830428836
+Epoch 162: Training Loss -1.7278868021011353
+Epoch 162: Validation Loss -1.7337101262713235
+Epoch 163: Training Loss -1.7330541837692262
+Epoch 163: Validation Loss -1.733265999763731
+Epoch 164: Training Loss -1.731073348045349
+Epoch 164: Validation Loss -1.7252841885127719
+Epoch 165: Training Loss -1.7331228984832763
+Epoch 165: Validation Loss -1.7294983674609472
+Epoch 166: Training Loss -1.7349137016296388
+Epoch 166: Validation Loss -1.7287974641436623
+Epoch 167: Training Loss -1.7298569570541382
+Epoch 167: Validation Loss -1.732560608122084
+Epoch 168: Training Loss -1.732226389503479
+Epoch 168: Validation Loss -1.733031910563272
+Epoch 169: Training Loss -1.7295941843032836
+Epoch 169: Validation Loss -1.721120206136552
+Epoch 170: Training Loss -1.7315319835662841
+Epoch 170: Validation Loss -1.7339575971875871
+Epoch 171: Training Loss -1.730116097831726
+Epoch 171: Validation Loss -1.7244303188626728
+Epoch 172: Training Loss -1.729786286354065
+Epoch 172: Validation Loss -1.7296296547329615
+Epoch 173: Training Loss -1.7306389369964599
+Epoch 173: Validation Loss -1.7352602046633523
+Epoch 174: Training Loss -1.7332691410064698
+Epoch 174: Validation Loss -1.7393056343472193
+Epoch 175: Training Loss -1.7378149225234985
+Epoch 175: Validation Loss -1.7274518523897444
+Epoch 176: Training Loss -1.7329807571411133
+Epoch 176: Validation Loss -1.720764951100425
+Epoch 177: Training Loss -1.7310507976531981
+Epoch 177: Validation Loss -1.7361692606456696
+Epoch 178: Training Loss -1.7321119190216065
+Epoch 178: Validation Loss -1.7216014124098278
+Epoch 179: Training Loss -1.7320873588562011
+Epoch 179: Validation Loss -1.7324213792407324
+Epoch 180: Training Loss -1.7321051048278808
+Epoch 180: Validation Loss -1.7184481866775998
+Epoch 181: Training Loss -1.7313491453170777
+Epoch 181: Validation Loss -1.7269082428917053
+Epoch 182: Training Loss -1.7321815376281737
+Epoch 182: Validation Loss -1.7396367901847476
+Epoch 183: Training Loss -1.7340216318130492
+Epoch 183: Validation Loss -1.7302760964348203
+Epoch 184: Training Loss -1.7303058809280396
+Epoch 184: Validation Loss -1.7256179556014046
+Epoch 185: Training Loss -1.7307774559020996
+Epoch 185: Validation Loss -1.7356506340087405
+Epoch 186: Training Loss -1.7294032999038695
+Epoch 186: Validation Loss -1.7310644615264166
+Epoch 187: Training Loss -1.734251008415222
+Epoch 187: Validation Loss -1.7291411785852342
+Epoch 188: Training Loss -1.733187823677063
+Epoch 188: Validation Loss -1.7338788528291007
+Epoch 189: Training Loss -1.7316634784698486
+Epoch 189: Validation Loss -1.7409321372471158
+Epoch 190: Training Loss -1.732693607711792
+Epoch 190: Validation Loss -1.740061674799238
+Epoch 191: Training Loss -1.7329265590667724
+Epoch 191: Validation Loss -1.7211267815695868
+Epoch 192: Training Loss -1.7317430780410767
+Epoch 192: Validation Loss -1.721542517344157
+Epoch 193: Training Loss -1.7353978643417358
+Epoch 193: Validation Loss -1.7315946741709634
+Epoch 194: Training Loss -1.7305019859313966
+Epoch 194: Validation Loss -1.7368809173977564
+Epoch 195: Training Loss -1.7341294544219972
+Epoch 195: Validation Loss -1.7360824233009702
+Epoch 196: Training Loss -1.7364250499725342
+Epoch 196: Validation Loss -1.7301732320634147
+Epoch 197: Training Loss -1.731802375602722
+Epoch 197: Validation Loss -1.7326838213299949
+Epoch 198: Training Loss -1.7307147743225098
+Epoch 198: Validation Loss -1.7344092755090623
+Epoch 199: Training Loss -1.7338954954147339
+Epoch 199: Validation Loss -1.7352664716660031
+Epoch 200: Training Loss -1.733781755065918
+Epoch 200: Validation Loss -1.7292022686156014
+Epoch 201: Training Loss -1.7326455593109131
+Epoch 201: Validation Loss -1.7310002834077864
+Epoch 202: Training Loss -1.7338196348190307
+Epoch 202: Validation Loss -1.7263746715727306
+Epoch 203: Training Loss -1.7353868450164796
+Epoch 203: Validation Loss -1.7403026402942718
+Epoch 204: Training Loss -1.733839323425293
+Epoch 204: Validation Loss -1.720656499030098
+Epoch 205: Training Loss -1.731966317176819
+Epoch 205: Validation Loss -1.7190816440279522
+Epoch 206: Training Loss -1.7334101030349731
+Epoch 206: Validation Loss -1.7339732287422058
+Epoch 207: Training Loss -1.7348314998626708
+Epoch 207: Validation Loss -1.7236642326627458
+Epoch 208: Training Loss -1.7328394454956055
+Epoch 208: Validation Loss -1.726371273161873
+Epoch 209: Training Loss -1.7318217756271361
+Epoch 209: Validation Loss -1.7409294767985268
+Epoch 210: Training Loss -1.7329601581573486
+Epoch 210: Validation Loss -1.7253062062793307
+Epoch 211: Training Loss -1.7332878126144409
+Epoch 211: Validation Loss -1.7337873625376867
+Epoch 212: Training Loss -1.7328997751235962
+Epoch 212: Validation Loss -1.7280942693589225
+Epoch 213: Training Loss -1.7307252511978148
+Epoch 213: Validation Loss -1.726235928989592
+Epoch 214: Training Loss -1.7335685041427613
+Epoch 214: Validation Loss -1.7321593231625028
+Epoch 215: Training Loss -1.7359573793411256
+Epoch 215: Validation Loss -1.7269055502755302
+Epoch 216: Training Loss -1.7328864677429199
+Epoch 216: Validation Loss -1.728833107721238
+Epoch 217: Training Loss -1.730077665901184
+Epoch 217: Validation Loss -1.7410443718471225
+Epoch 218: Training Loss -1.7309359680175782
+Epoch 218: Validation Loss -1.7316667882222978
+Epoch 219: Training Loss -1.7298092571258545
+Epoch 219: Validation Loss -1.7328310845390198
+Epoch 220: Training Loss -1.7316368267059326
+Epoch 220: Validation Loss -1.7285926758296906
+Epoch 221: Training Loss -1.7320795970916747
+Epoch 221: Validation Loss -1.7343495251640442
+Epoch 222: Training Loss -1.7304667043685913
+Epoch 222: Validation Loss -1.7310830884509616
+Epoch 223: Training Loss -1.7334498754501342
+Epoch 223: Validation Loss -1.7296706305609808
+Epoch 224: Training Loss -1.7326776823043823
+Epoch 224: Validation Loss -1.7434712440248519
+Epoch 225: Training Loss -1.7371255773544312
+Epoch 225: Validation Loss -1.7239593608038766
+Epoch 226: Training Loss -1.7306489282608033
+Epoch 226: Validation Loss -1.7337363693449233
+Epoch 227: Training Loss -1.7348689086914062
+Epoch 227: Validation Loss -1.7372723552915785
+Epoch 228: Training Loss -1.734143832206726
+Epoch 228: Validation Loss -1.729109105609712
+Epoch 229: Training Loss -1.7302477220535277
+Epoch 229: Validation Loss -1.7371907290958224
+Epoch 230: Training Loss -1.7309402788162231
+Epoch 230: Validation Loss -1.7296243660033694
+Epoch 231: Training Loss -1.7329908855438232
+Epoch 231: Validation Loss -1.7204048311899578
+Epoch 232: Training Loss -1.729802345085144
+Epoch 232: Validation Loss -1.7224903541897971
+Epoch 233: Training Loss -1.730823228263855
+Epoch 233: Validation Loss -1.738614385090177
+Epoch 234: Training Loss -1.7331316207885743
+Epoch 234: Validation Loss -1.7341771617768302
+Epoch 235: Training Loss -1.7279516744613648
+Epoch 235: Validation Loss -1.7319212508580042
+Epoch 236: Training Loss -1.7296770135879516
+Epoch 236: Validation Loss -1.7212991582022772
+Epoch 237: Training Loss -1.7294734777450562
+Epoch 237: Validation Loss -1.7250640373381356
+Epoch 238: Training Loss -1.7345963998794556
+Epoch 238: Validation Loss -1.727571790180509
+Epoch 239: Training Loss -1.7303484544754029
+Epoch 239: Validation Loss -1.7326748352202157
+Epoch 240: Training Loss -1.7320455980300904
+Epoch 240: Validation Loss -1.7313782090232486
+Epoch 241: Training Loss -1.7317012731552124
+Epoch 241: Validation Loss -1.7254978323739671
+Epoch 242: Training Loss -1.7308425161361694
+Epoch 242: Validation Loss -1.7373267658173093
+Epoch 243: Training Loss -1.7302995859146117
+Epoch 243: Validation Loss -1.7320987421368796
+Epoch 244: Training Loss -1.7329997806549071
+Epoch 244: Validation Loss -1.7187922890224154
+Epoch 245: Training Loss -1.7329740259170532
+Epoch 245: Validation Loss -1.7274987754367648
+Epoch 246: Training Loss -1.7283288927078246
+Epoch 246: Validation Loss -1.7344440467773923
+Epoch 247: Training Loss -1.7302003206253052
+Epoch 247: Validation Loss -1.735699873121958
+Epoch 248: Training Loss -1.732844748687744
+Epoch 248: Validation Loss -1.7350841666024828
+Epoch 249: Training Loss -1.7328164730072022
+Epoch 249: Validation Loss -1.7350489941854326
+Best Validation Loss -1.7473565945549616 on Epoch 137
