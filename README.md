@@ -37,6 +37,9 @@ in the `data/QM9/` directory and do the same for the drugs directory. This is al
 queue=queue_name
 `python train.py --data_dir data/QM9/qm9/ --split_path data/QM9/splits/split0.npy --log_dir ./test_run --n_epochs 250 --dataset qm9 --num_workers 0`
 `qsub_anywhere.py -c train.sh -q $queue -j . -N train-GeoMol -g 1 --qsub_now`
+
+`python train.py /pubhome/qcxia02/git-repo/AI-CONF/datasets/GeoMol/data/DRUGS/drugs
+`python train.py --data_dir 
 ### if restart
 <!-- `python train.py --data_dir data/QM9/qm9/ --split_path data/QM9/splits/split0.npy --log_dir ./test_run --n_epochs 250 --dataset qm9 --restart_dir ./restart` -->
 
