@@ -290,9 +290,9 @@ def featurize_mol_from_smiles(smiles, dataset='qm9'):
     neighbor_dict = {}
     ring = mol.GetRingInfo()
     for i, atom in enumerate(mol.GetAtoms()):
-        type_idx.append(types[atom.GetSymbol()])
-        n_ids = [n.GetIdx() for n in atom.GetNeighbors()]
-        if len(n_ids) > 1:
+        type_idx.append(types[atom.GetSymbol()]) # Symbol is CHON
+        n_ids = [n.GetIdx() for n in atom.GetNeighbors()] # Neighbor index 0123
+        if len(n_ids) > 1: # Only save atoms with neighbors > 1
             neighbor_dict[i] = torch.tensor(n_ids)
         chiral_tag.append(chirality[atom.GetChiralTag()])
         atomic_number.append(atom.GetAtomicNum())
@@ -312,7 +312,7 @@ def featurize_mol_from_smiles(smiles, dataset='qm9'):
                               int(ring.IsAtomInRingOfSize(i, 5)),
                               int(ring.IsAtomInRingOfSize(i, 6)),
                               int(ring.IsAtomInRingOfSize(i, 7)),
-                              int(ring.IsAtomInRingOfSize(i, 8))])
+                              int(ring.IsAtomInRingOfSize(i, 8))]) # no others because of no one-hot encoding
         atom_features.extend(one_k_encoding(int(ring.NumAtomRings(i)), [0, 1, 2, 3]))
 
     z = torch.tensor(atomic_number, dtype=torch.long)

@@ -27,10 +27,10 @@ class GeoMol(nn.Module):
         self.loss_type = hyperparams['loss_type']
         self.teacher_force = hyperparams['teacher_force']
         self.random_alpha = hyperparams['random_alpha']
-        # self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # self.devic`ge = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.device = torch.device('cpu')
 
-
+        # GNN for MPNN embedding information in graph
         self.gnn = GNN(node_dim=num_node_features + self.random_vec_dim,
                        edge_dim=num_edge_features + self.random_vec_dim,
                        hidden_dim=self.model_dim, depth=hyperparams['gnn1']['depth'],
@@ -49,6 +49,8 @@ class GeoMol(nn.Module):
                                                dropout=0.0, activation='relu')
 
         self.coord_pred = MLP(in_dim=self.model_dim * 2, out_dim=3, num_layers=hyperparams['coord_pred']['n_layers'])
+
+        # distance
         self.d_mlp = MLP(in_dim=self.model_dim * 2, out_dim=1, num_layers=hyperparams['d_mlp']['n_layers'])
 
         # For whole molecular embedding
@@ -232,7 +234,7 @@ class GeoMol(nn.Module):
         self.dihedral_mask = torch.bmm(self.dihedral_x_mask[~self.x_map_to_neighbor_y.bool()].view(-1, 3, 1),
                                        self.dihedral_y_mask[~self.y_map_to_neighbor_x.bool()].view(-1, 1, 3)).view(-1, 9)
 
-    def embed(self, x, edge_index, edge_attr, batch):
+    def  embed(self, x, edge_index, edge_attr, batch):
 
         # stochasticity
         rand_dist = torch.distributions.normal.Normal(loc=0, scale=self.random_vec_std)
@@ -681,8 +683,8 @@ class GeoMol(nn.Module):
         :return:
         """
 
-        model_one_hop, model_two_hop, model_angles = self.model_local_stats(x1, chiral_tag)
-        model_dihedrals, model_three_hop = self.model_pair_stats(x2, batch, h_mol)
+        model_one_hop, model_two_hop, model_angles = self.model_local_stats(x1, chiral_tag) # x1 for LS
+        model_dihedrals, model_three_hop = self.model_pair_stats(x2, batch, h_mol) # x2 and h_mol for dihedral and 3-hop distance
 
         return model_one_hop, model_two_hop, model_angles, model_dihedrals, model_three_hop
 

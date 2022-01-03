@@ -6,11 +6,13 @@ import random
 import yaml
 from argparse import ArgumentParser
 from pathlib import Path, PosixPath
+from multiprocessing import Pool
 
 import torch
 from torch_geometric.data import Batch
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem
+from rdkit.Chem.rdmolops import Get3DDistanceMatrix
 
 from model.model import GeoMol
 from model.featurization import featurize_mol_from_smiles
@@ -19,14 +21,20 @@ from model.inference import construct_conformers
 class FooClass(object):
     def __init__(self, content):
         self.values = content
+
+def pass_clash_filter(rdmol, cutoff):
+    matrix3d = Get3DDistanceMatrix(rdmol)
+    return False if ((matrix3d > 0) & (matrix3d < cutoff)).any() else True
+
 def generate_GeoMol_confs(args, testdata):
     err_smis = []
     trained_model_dir = args.trained_model_dir
     dataset = args.dataset
     mmff = args.mmff
+    cutoff = args.cutoff
 
     with open(f'{trained_model_dir}/model_parameters.yml') as f:
-        model_parameters = yaml.full_load(f)
+        model_parameters = yaml.full_load(f) # one can alter the noise std here
     model = GeoMol(**model_parameters)
     
     state_dict = torch.load(f'{trained_model_dir}/best_model.pt', map_location=torch.device('cpu'))
@@ -58,15 +66,20 @@ def generate_GeoMol_confs(args, testdata):
             mol.AddConformer(Chem.Conformer(n_atoms), assignId=True)
             for i in range(n_atoms):
                 mol.GetConformer(0).SetAtomPosition(i, Geometry.Point3D(coords[i, 0], coords[i, 1], coords[i, 2]))
-
             if mmff:
                 try:
                     AllChem.MMFFOptimizeMoleculeConfs(mol, mmffVariant='MMFF94s')
                 except Exception as e:
                     pass
-            mols.append(mol)
-            
-        conformer_dict[smi] = mols
+        # filter clashed confs
+            if pass_clash_filter(mol, cutoff):
+                mols.append(mol)
+        ######################
+            # mols.append(mol)
+        if len(mols):
+            conformer_dict[smi] = mols # only save smis that with cutoff > 0.7
+        else:
+            err_smis.append(smi)
     return conformer_dict, err_smis
 
 
@@ -79,6 +92,7 @@ if __name__ == "__main__":
     parser.add_argument('--mmff', action='store_true', default=False)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--numgenconfs', type=int, default=5, help="default generating 10 confs each smi")
+    parser.add_argument('--cutoff', type=float, default=0.7, help="simply filter molecules with clash")
     # parser.add_argument('--smi', type=str, help="smi for conformation generation")
     args = parser.parse_args()
     

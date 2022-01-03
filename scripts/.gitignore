@@ -33,3 +33,4 @@ work_models/
 tmp/
 test_mols
 *.log
+*.pickle

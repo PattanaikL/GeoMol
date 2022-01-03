@@ -157,8 +157,8 @@ if __name__ == "__main__":
 
     # data_gen_ref = [ (smi, mols_ref, data_gen[smi]) for smi,mols_ref in data_ref.items() if not smi in dirty_smi_list]
     data_gen_ref = [
-        # (smi, mols_ref, data_gen[smi])
-        (smi, [mols_ref], data_gen[smi]) # For single
+        (smi, mols_ref, data_gen[smi])
+        # (smi, [mols_ref], data_gen[smi]) # For single
         for smi, mols_ref in data_ref.items()
         if not smi in dirty_smi_list
     ]  # for platinum, where each mol has one conf
@@ -198,8 +198,8 @@ if __name__ == "__main__":
 
     # Write summary csv
     calculator = MoleculeDescriptors.MolecularDescriptorCalculator(['NumRotatableBonds'])
-    # numrots = [ calculator.CalcDescriptors(mol[0])[0] for _, mol in data_ref.items() ]
-    numrots = [ calculator.CalcDescriptors(mol)[0] for smi, mol in data_ref.items() if smi not in dirty_smi_list] # For single
+    numrots = [ calculator.CalcDescriptors(mol[0])[0] for _, mol in data_ref.items() ]
+    # numrots = [ calculator.CalcDescriptors(mol)[0] for smi, mol in data_ref.items() if smi not in dirty_smi_list] # For single
     smis = list(data_ref.keys())
     indexes = [smis.index(smi) for smi in smis if smi not in dirty_smi_list]
     num_cov_mat_dict = {
