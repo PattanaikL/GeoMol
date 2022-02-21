@@ -10,15 +10,15 @@ import random
 random.seed(0)
 np.random.seed(0)
 
-exp_dir = 'trained_models/drugs'
+dataset = 'qm9'
+exp_dir = f'../trained_models/{dataset}'
 suffix = ''
 
 with open(f'{exp_dir}/test_mols{suffix}.pkl', 'rb') as f:
     model_preds = pickle.load(f)
 
-dataset = 'drugs'
-test_data = pd.read_csv(f'{dataset}/test_smiles.csv')  # this should include the corrected smiles
-with open(f'{dataset}/test_mols.pkl', 'rb') as f:
+test_data = pd.read_csv(f'../data/{dataset.upper()}/test_smiles_corrected.csv')  # this should include the corrected smiles
+with open(f'../data/{dataset.upper()}/test_mols.pkl', 'rb') as f:
     true_mols = pickle.load(f)
 
 
@@ -58,17 +58,16 @@ def clean_confs(smi, confs):
 
 coverage_recall, amr_recall, coverage_precision, amr_precision = [], [], [], []
 test_smiles = []
-rdkit_smiles = test_data.smiles.values
-corrected_smiles = test_data.corrected_smiles.values
-model_smiles = [smi for smi in list(model_preds.keys())]
-threshold_ranges = np.arange(0, 2.5, .125)
+threshold_ranges = np.arange(0, 2.5, .125)  # change for QM9
 
-for smi, model_smi, corrected_smi in tqdm(zip(rdkit_smiles, model_smiles, corrected_smiles), total=len(rdkit_smiles)):
+for smi, n_confs, corrected_smi in tqdm(test_data.values):
+    if not Chem.MolFromSmiles(smi):
+        continue
     
     try:
-        model_confs = model_preds[model_smi]
+        model_confs = model_preds[corrected_smi]
     except KeyError:
-        print(f'no model prediction available: {model_smi}')
+        print(f'no model prediction available: {corrected_smi}')
         coverage_recall.append(threshold_ranges*0)
         amr_recall.append(np.nan)
         coverage_precision.append(threshold_ranges*0)
@@ -100,7 +99,7 @@ for smi, model_smi, corrected_smi in tqdm(zip(rdkit_smiles, model_smiles, correc
         
     stats = calc_performance_stats(true_confs, model_confs)
     if not stats:
-        print(f'failure calculating stats: {smi, model_smi}')
+        print(f'failure calculating stats: {smi, corrected_smi}')
         continue
         
     cr, mr, cp, mp = stats
