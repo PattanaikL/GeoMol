@@ -96,31 +96,21 @@ class geom_confs(Dataset):
         return dic
 
     def featurize_mol(self, mol_dic):
-        confs = mol_dic['conformers']
+        confs, name = mol_dic['conformers'], mol_dic["smiles"]
         random.shuffle(confs)  # shuffle confs
-        name = mol_dic["smiles"]
 
         # filter mols rdkit can't intrinsically handle
-        mol_ = Chem.MolFromSmiles(name)
-        if mol_:
-            canonical_smi = Chem.MolToSmiles(mol_)
-        else:
-            return None
-
-        # skip conformers with fragments
-        if '.' in name:
+        try:
+            canonical_smi = Chem.MolToSmiles(Chem.MolFromSmiles(name))
+        except Exception:
             return None
 
         # skip conformers without dihedrals
-        N = confs[0]['rd_mol'].GetNumAtoms()
-        if N < 4:
-            return None
-        if confs[0]['rd_mol'].GetNumBonds() < 4:
-            return None
-        if not confs[0]['rd_mol'].HasSubstructMatch(dihedral_pattern):
+        if _check_mol(confs[0]['rd_mol'], smiles=name) is None:
             return None
 
-        pos = torch.zeros([self.max_confs, N, 3])
+        n_atom = confs[0]['rd_mol'].GetNumAtoms()
+        pos = torch.zeros([self.max_confs, n_atom, 3])
         pos_mask = torch.zeros(self.max_confs, dtype=torch.int64)
         k = 0
         for conf in confs:
@@ -134,7 +124,7 @@ class geom_confs(Dataset):
             # filter for conformers that may have reacted
             try:
                 conf_canonical_smi = Chem.MolToSmiles(Chem.RemoveHs(mol))
-            except Exception as e:
+            except Exception:
                 continue
 
             if conf_canonical_smi != canonical_smi:
@@ -151,74 +141,17 @@ class geom_confs(Dataset):
         if k == 0:
             return None
 
-        type_idx = []
-        atomic_number = []
-        atom_features = []
-        chiral_tag = []
-        neighbor_dict = {}
-        ring = correct_mol.GetRingInfo()
-        for i, atom in enumerate(correct_mol.GetAtoms()):
-            type_idx.append(self.types[atom.GetSymbol()])
-            n_ids = [n.GetIdx() for n in atom.GetNeighbors()]
-            if len(n_ids) > 1:
-                neighbor_dict[i] = torch.tensor(n_ids)
-            chiral_tag.append(chirality[atom.GetChiralTag()])
-            atomic_number.append(atom.GetAtomicNum())
-            atom_features.extend([atom.GetAtomicNum(),
-                                  1 if atom.GetIsAromatic() else 0])
-            atom_features.extend(one_k_encoding(atom.GetDegree(), [0, 1, 2, 3, 4, 5, 6]))
-            atom_features.extend(one_k_encoding(atom.GetHybridization(), [
-                                    HybridizationType.SP,
-                                    HybridizationType.SP2,
-                                    HybridizationType.SP3,
-                                    HybridizationType.SP3D,
-                                    HybridizationType.SP3D2]))
-            atom_features.extend(one_k_encoding(atom.GetImplicitValence(), [0, 1, 2, 3, 4, 5, 6]))
-            atom_features.extend(one_k_encoding(atom.GetFormalCharge(), [-1, 0, 1]))
-            atom_features.extend([int(ring.IsAtomInRingOfSize(i, 3)),
-                                  int(ring.IsAtomInRingOfSize(i, 4)),
-                                  int(ring.IsAtomInRingOfSize(i, 5)),
-                                  int(ring.IsAtomInRingOfSize(i, 6)),
-                                  int(ring.IsAtomInRingOfSize(i, 7)),
-                                  int(ring.IsAtomInRingOfSize(i, 8))])
-            atom_features.extend(one_k_encoding(int(ring.NumAtomRings(i)), [0, 1, 2, 3]))
+        x, z, edge_index, edge_attr, neighbor_dict, chiral_tag \
+            = _mol_to_features(correct_mol, self.dataset)
 
-        z = torch.tensor(atomic_number, dtype=torch.long)
-        chiral_tag = torch.tensor(chiral_tag, dtype=torch.float)
-
-        row, col, edge_type, bond_features = [], [], [], []
-        for bond in correct_mol.GetBonds():
-            start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-            row += [start, end]
-            col += [end, start]
-            edge_type += 2 * [self.bonds[bond.GetBondType()]]
-            bt = tuple(sorted([bond.GetBeginAtom().GetAtomicNum(), bond.GetEndAtom().GetAtomicNum()])), bond.GetBondTypeAsDouble()
-            bond_features += 2 * [int(bond.IsInRing()),
-                                  int(bond.GetIsConjugated()),
-                                  int(bond.GetIsAromatic())]
-
-        edge_index = torch.tensor([row, col], dtype=torch.long)
-        edge_type = torch.tensor(edge_type, dtype=torch.long)
-        edge_attr = F.one_hot(edge_type, num_classes=len(self.bonds)).to(torch.float)
-        # bond_features = torch.tensor(bond_features, dtype=torch.float).view(len(bond_type), -1)
-
-        perm = (edge_index[0] * N + edge_index[1]).argsort()
-        edge_index = edge_index[:, perm]
-        edge_type = edge_type[perm]
-        # edge_attr = torch.cat([edge_attr[perm], bond_features], dim=-1)
-        edge_attr = edge_attr[perm]
-
-        row, col = edge_index
-        hs = (z == 1).to(torch.float)
-        num_hs = scatter(hs[row], col, dim_size=N).tolist()
-
-        x1 = F.one_hot(torch.tensor(type_idx), num_classes=len(self.types))
-        x2 = torch.tensor(atom_features).view(N, -1)
-        x = torch.cat([x1.to(torch.float), x2], dim=-1)
-
-        data = Data(x=x, z=z, pos=[pos], edge_index=edge_index, edge_attr=edge_attr, neighbors=neighbor_dict,
-                    chiral_tag=chiral_tag, name=name, boltzmann_weight=conf['boltzmannweight'],
-                    degeneracy=conf['degeneracy'], mol=correct_mol, pos_mask=pos_mask)
+        data = Data(x=x, z=z, pos=[pos],
+                    edge_index=edge_index, edge_attr=edge_attr,
+                    neighbors=neighbor_dict,
+                    chiral_tag=chiral_tag,
+                    name=name, mol=correct_mol,
+                    boltzmann_weight=conf['boltzmannweight'],
+                    degeneracy=conf['degeneracy'],
+                    pos_mask=pos_mask)
         return data
 
 
