@@ -245,7 +245,15 @@ class GeoMol(nn.Module):
             x2 = x_global[x_mask, :]
 
         else:
-            h_mol = self.h_mol_mlp(global_add_pool(x2, batch))
+            # global_add_pool changed in PR #4827 to use dim=-2 instead of 0 by default
+            # Use a more general version to support both new and old versions of PyTorch Geometric
+            size = int(batch.max().item() + 1)
+            h_mol = self.h_mol_mlp(
+                            scatter(x2,
+                                    batch,
+                                    dim=0,
+                                    dim_size=size,
+                                    reduce='sum'))
 
         return x1, x2, h_mol
 
