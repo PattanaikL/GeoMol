@@ -10,8 +10,7 @@ import torch
 import yaml
 
 from geomol.model import GeoMol
-from geomol.featurization import featurize_mol_from_smiles
-from torch_geometric.data import Batch
+from geomol.featurization import featurize_mol_from_smiles, from_data_list
 from geomol.inference import construct_conformers
 
 
@@ -53,7 +52,7 @@ for smi, n_confs in tqdm(test_data.values):
         continue
 
     # generate model predictions
-    data = Batch.from_data_list([tg_data])
+    data = from_data_list([tg_data])
     model(data, inference=True, n_model_confs=n_confs*2)
 
     # set coords
