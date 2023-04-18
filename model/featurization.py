@@ -6,6 +6,7 @@ import glob
 import os.path as osp
 import pickle
 import random
+from typing import Optional
 
 import numpy as np
 import torch
@@ -476,3 +477,27 @@ def _mol_to_features(mol,
     x = torch.cat([x1.to(torch.float), x2], dim=-1)
 
     return x, z, edge_index, edge_attr, neighbor_dict, chiral_tag
+
+
+def featurize_mol(mol,
+                  dataset: str = 'qm9',
+                  smiles: Optional[str] = None,
+                  name: str = ''):
+    """
+    Featurize a molecule.
+    """
+    mol = _check_mol(mol, smiles=smiles)
+    name = smiles if (smiles and not name) else name
+
+    if mol:
+        x, _, edge_index, edge_attr, neighbor_dict, chiral_tag \
+                = _mol_to_features(mol, dataset=dataset)
+        data = Data(x=x,
+                    edge_index=edge_index,
+                    edge_attr=edge_attr,
+                    neighbors=neighbor_dict,
+                    chiral_tag=chiral_tag,
+                    name=name)
+        data.edge_index_dihedral_pairs = get_dihedral_pairs(
+            data.edge_index,
+            data=data)
