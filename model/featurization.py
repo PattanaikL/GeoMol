@@ -153,11 +153,11 @@ class geom_confs(Dataset):
                                   1 if atom.GetIsAromatic() else 0])
             atom_features.extend(one_k_encoding(atom.GetDegree(), [0, 1, 2, 3, 4, 5, 6]))
             atom_features.extend(one_k_encoding(atom.GetHybridization(), [
-                                    Chem.rdchem.HybridizationType.SP,
-                                    Chem.rdchem.HybridizationType.SP2,
-                                    Chem.rdchem.HybridizationType.SP3,
-                                    Chem.rdchem.HybridizationType.SP3D,
-                                    Chem.rdchem.HybridizationType.SP3D2]))
+                                    HybridizationType.SP,
+                                    HybridizationType.SP2,
+                                    HybridizationType.SP3,
+                                    HybridizationType.SP3D,
+                                    HybridizationType.SP3D2]))
             atom_features.extend(one_k_encoding(atom.GetImplicitValence(), [0, 1, 2, 3, 4, 5, 6]))
             atom_features.extend(one_k_encoding(atom.GetFormalCharge(), [-1, 0, 1]))
             atom_features.extend([int(ring.IsAtomInRingOfSize(i, 3)),
