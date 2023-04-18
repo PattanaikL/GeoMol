@@ -7,15 +7,18 @@ import os.path as osp
 import pickle
 import random
 from typing import Optional
+from packaging import version
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+import torch_geometric as tg
+from torch_geometric.data import Batch, Data, DataLoader, Dataset
 from torch_scatter import scatter
-from torch_geometric.data import Dataset, Data, DataLoader
 
 from model.utils import get_dihedral_pairs
 
+tg_version_ge_2 = version.parse(tg.__version__) > version.parse('2.0.0')
 
 bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
 chirality = {ChiralType.CHI_TETRAHEDRAL_CW: -1.,
@@ -352,3 +355,22 @@ def featurize_mol_from_smiles(smiles: str,
         return featurize_mol(mol,
                              dataset=dataset,
                              name=smiles)
+
+
+def from_data_list(data_list: list):
+    """
+    Creates a batch object from a list of data objects. This is useful for inference with an improvisational list of features from different molecules.
+    This function is a wrapper for the torch_geometric function Batch.from_data_list
+    with a special treatment for the neighbors attribute. If without the
+    treatment, neighbors will be collapsed into a single dict and only have keys in the
+    first elements, causing an error raised in "get_neighbor_ids".
+
+    It has only been tested and applied for torch_geometric over version 2.0.0.
+    """
+    if tg_version_ge_2:
+        batch_data = Batch.from_data_list(data_list,
+                                          exclude_keys=['neighbors'])
+        batch_data.neighbors = [d.neighbors for d in data_list]
+    else:
+        batch_data = Batch.from_data_list(data_list)
+    return batch_data
