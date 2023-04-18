@@ -2,8 +2,8 @@ import torch
 import numpy as np
 import networkx as nx
 import torch_geometric as tg
-from model.utils import batch_dihedrals
-from model.cycle_utils import *
+from geomol.utils import batch_dihedrals
+from geomol.cycle_utils import *
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -436,3 +436,5 @@ def build_gamma_rotation_inf(gamma_sin, gamma_cos, n_model_confs):
     H_gamma[:, 2, 2] = gamma_cos
 
     return H_gamma
+
+

@@ -16,7 +16,7 @@ import torch_geometric as tg
 from torch_geometric.data import Batch, Data, DataLoader, Dataset
 from torch_scatter import scatter
 
-from model.utils import get_dihedral_pairs
+from geomol.utils import get_dihedral_pairs
 
 tg_version_ge_2 = version.parse(tg.__version__) > version.parse('2.0.0')
 

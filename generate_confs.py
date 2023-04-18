@@ -9,10 +9,10 @@ import random
 import torch
 import yaml
 
-from model.model import GeoMol
-from model.featurization import featurize_mol_from_smiles
+from geomol.model import GeoMol
+from geomol.featurization import featurize_mol_from_smiles
 from torch_geometric.data import Batch
-from model.inference import construct_conformers
+from geomol.inference import construct_conformers
 
 
 parser = ArgumentParser()
@@ -45,17 +45,17 @@ test_data = pd.read_csv(test_csv)
 
 conformer_dict = {}
 for smi, n_confs in tqdm(test_data.values):
-    
+
     # create data object (skip smiles rdkit can't handle)
     tg_data = featurize_mol_from_smiles(smi, dataset=dataset)
     if not tg_data:
         print(f'failed to featurize SMILES: {smi}')
         continue
-    
+
     # generate model predictions
     data = Batch.from_data_list([tg_data])
     model(data, inference=True, n_model_confs=n_confs*2)
-    
+
     # set coords
     n_atoms = tg_data.x.size(0)
     model_coords = construct_conformers(data, model)
@@ -73,9 +73,9 @@ for smi, n_confs in tqdm(test_data.values):
             except Exception as e:
                 pass
         mols.append(mol)
-        
+
     conformer_dict[smi] = mols
-    
+
 # save to file
 if args.out:
     with open(f'{args.out}', 'wb') as f:

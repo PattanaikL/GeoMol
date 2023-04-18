@@ -2,7 +2,7 @@ import torch
 import torch_geometric as tg
 from torch_geometric.utils import degree
 import networkx as nx
-from model.cycle_utils import get_current_cycle_indices
+from geomol.cycle_utils import get_current_cycle_indices
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 angle_mask_ref = torch.LongTensor([[0, 0, 0, 0, 0, 0],

@@ -6,8 +6,8 @@ import torch_geometric as tg
 from torch_geometric.nn import global_add_pool
 from torch_scatter import scatter
 
-from model.GNN import GNN, MLP
-from model.utils import *
+from geomol.GNN import GNN, MLP
+from geomol.utils import *
 
 from itertools import permutations
 import numpy as np
