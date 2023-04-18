@@ -499,5 +499,6 @@ def featurize_mol(mol,
                     chiral_tag=chiral_tag,
                     name=name)
         data.edge_index_dihedral_pairs = get_dihedral_pairs(
-            data.edge_index,
-            data=data)
+                                            data.edge_index,
+                                            data=data)
+        return data
