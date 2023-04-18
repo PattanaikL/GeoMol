@@ -391,3 +391,88 @@ def _check_mol(mol,
     if not mol.HasSubstructMatch(dihedral_pattern):
         return None
     return mol
+
+
+def _mol_to_features(mol,
+                     dataset: str = 'qm9'):
+    """
+    Prepare necessary information for converting a RDKit mol object to a torch_geometry_data object.
+    """
+    types = dataset_types[dataset]
+
+    type_idx = []
+    atomic_number = []
+    atom_features = []
+    chiral_tag = []
+    neighbor_dict = {}
+    ring = mol.GetRingInfo()
+
+    n_atom = mol.GetNumAtoms()
+    # Atomic features
+    for i, atom in enumerate(mol.GetAtoms()):
+        type_idx.append(types[atom.GetSymbol()])
+        if len(atom.GetNeighbors()) > 1:
+            n_ids = [n.GetIdx() for n in atom.GetNeighbors()]
+            neighbor_dict[i] = torch.tensor(n_ids)
+        chiral_tag.append(chirality[atom.GetChiralTag()])
+        atomic_number.append(atom.GetAtomicNum())
+        atom_features.extend([atom.GetAtomicNum(),
+                              1 if atom.GetIsAromatic() else 0])
+        atom_features.extend(one_k_encoding(
+            atom.GetDegree(), [0, 1, 2, 3, 4, 5, 6]))
+        atom_features.extend(one_k_encoding(atom.GetHybridization(), [
+            HybridizationType.SP,
+            HybridizationType.SP2,
+            HybridizationType.SP3,
+            HybridizationType.SP3D,
+            HybridizationType.SP3D2]))
+        atom_features.extend(one_k_encoding(
+            atom.GetImplicitValence(), [0, 1, 2, 3, 4, 5, 6]))
+        atom_features.extend(one_k_encoding(
+            atom.GetFormalCharge(), [-1, 0, 1]))
+        atom_features.extend([int(ring.IsAtomInRingOfSize(i, 3)),
+                              int(ring.IsAtomInRingOfSize(i, 4)),
+                              int(ring.IsAtomInRingOfSize(i, 5)),
+                              int(ring.IsAtomInRingOfSize(i, 6)),
+                              int(ring.IsAtomInRingOfSize(i, 7)),
+                              int(ring.IsAtomInRingOfSize(i, 8))])
+        atom_features.extend(one_k_encoding(
+            int(ring.NumAtomRings(i)), [0, 1, 2, 3]))
+
+    z = torch.tensor(atomic_number, dtype=torch.long)
+    chiral_tag = torch.tensor(chiral_tag, dtype=torch.float)
+
+    # Edge features
+    row, col, edge_type, bond_features = [], [], [], []
+    for bond in mol.GetBonds():
+        start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
+        row += [start, end]
+        col += [end, start]
+        edge_type += 2 * [bonds[bond.GetBondType()]]
+        bt = tuple(
+                sorted(
+                    [bond.GetBeginAtom().GetAtomicNum(),
+                     bond.GetEndAtom().GetAtomicNum()]
+                    )), bond.GetBondTypeAsDouble()
+        bond_features += 2 * [int(bond.IsInRing()),
+                              int(bond.GetIsConjugated()),
+                              int(bond.GetIsAromatic())]
+
+    edge_index = torch.tensor([row, col], dtype=torch.long)
+    edge_type = torch.tensor(edge_type, dtype=torch.long)
+    edge_attr = F.one_hot(edge_type, num_classes=len(bonds)).to(torch.float)
+
+    perm = (edge_index[0] * n_atom + edge_index[1]).argsort()
+    edge_index = edge_index[:, perm]
+    edge_type = edge_type[perm]
+    edge_attr = edge_attr[perm]
+
+    row, col = edge_index
+    hs = (z == 1).to(torch.float)
+    num_hs = scatter(hs[row], col, dim_size=n_atom).tolist()
+
+    x1 = F.one_hot(torch.tensor(type_idx), num_classes=len(types))
+    x2 = torch.tensor(atom_features).view(n_atom, -1)
+    x = torch.cat([x1.to(torch.float), x2], dim=-1)
+
+    return x, z, edge_index, edge_attr, neighbor_dict, chiral_tag
