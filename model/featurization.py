@@ -15,11 +15,21 @@ from torch_geometric.data import Dataset, Data, DataLoader
 
 from model.utils import get_dihedral_pairs
 
-dihedral_pattern = Chem.MolFromSmarts('[*]~[*]~[*]~[*]')
+
+bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
 chirality = {ChiralType.CHI_TETRAHEDRAL_CW: -1.,
              ChiralType.CHI_TETRAHEDRAL_CCW: 1.,
              ChiralType.CHI_UNSPECIFIED: 0,
              ChiralType.CHI_OTHER: 0}
+dihedral_pattern = Chem.MolFromSmarts('[*]~[*]~[*]~[*]')
+
+qm9_types = {'H': 0, 'C': 1, 'N': 2, 'O': 3, 'F': 4}
+drugs_types = {'H': 0, 'Li': 1, 'B': 2, 'C': 3, 'N': 4, 'O': 5, 'F': 6, 'Na': 7, 'Mg': 8, 'Al': 9, 'Si': 10,
+               'P': 11, 'S': 12, 'Cl': 13, 'K': 14, 'Ca': 15, 'V': 16, 'Cr': 17, 'Mn': 18, 'Cu': 19, 'Zn': 20,
+               'Ga': 21, 'Ge': 22, 'As': 23, 'Se': 24, 'Br': 25, 'Ag': 26, 'In': 27, 'Sb': 28, 'I': 29, 'Gd': 30,
+               'Pt': 31, 'Au': 32, 'Hg': 33, 'Bi': 34}
+
+
 
 
 def one_k_encoding(value, choices):
@@ -245,14 +255,6 @@ def construct_loader(args, modes=('train', 'val')):
         return loaders[0]
     else:
         return loaders
-
-
-bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
-qm9_types = {'H': 0, 'C': 1, 'N': 2, 'O': 3, 'F': 4}
-drugs_types = {'H': 0, 'Li': 1, 'B': 2, 'C': 3, 'N': 4, 'O': 5, 'F': 6, 'Na': 7, 'Mg': 8, 'Al': 9, 'Si': 10,
-               'P': 11, 'S': 12, 'Cl': 13, 'K': 14, 'Ca': 15, 'V': 16, 'Cr': 17, 'Mn': 18, 'Cu': 19, 'Zn': 20,
-               'Ga': 21, 'Ge': 22, 'As': 23, 'Se': 24, 'Br': 25, 'Ag': 26, 'In': 27, 'Sb': 28, 'I': 29, 'Gd': 30,
-               'Pt': 31, 'Au': 32, 'Hg': 33, 'Bi': 34}
 
 
 def featurize_mol_from_smiles(smiles, dataset='qm9'):
