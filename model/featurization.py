@@ -1,18 +1,18 @@
 from rdkit import Chem
-from rdkit.Chem.rdchem import HybridizationType
+from rdkit.Chem.rdchem import ChiralType, HybridizationType
 from rdkit.Chem.rdchem import BondType as BT
-from rdkit.Chem.rdchem import ChiralType
 
-import os.path as osp
-import numpy as np
 import glob
+import os.path as osp
 import pickle
 import random
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from torch_scatter import scatter
 from torch_geometric.data import Dataset, Data, DataLoader
+
 from model.utils import get_dihedral_pairs
 
 dihedral_pattern = Chem.MolFromSmarts('[*]~[*]~[*]~[*]')
