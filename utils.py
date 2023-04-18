@@ -7,7 +7,7 @@ import seaborn as sns
 import yaml
 import torch
 
-from model.training import build_lr_scheduler
+from geomol.training import build_lr_scheduler
 
 
 sns.set_style('whitegrid', {'axes.edgecolor': '.2'})

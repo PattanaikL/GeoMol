@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="GeomMol",
+    name="GeoMol",
     version="1.0.0",
     author="Lagnajit Pattanaik",
     author_email="lagnajit@mit.com",
