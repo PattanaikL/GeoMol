@@ -348,3 +348,46 @@ def featurize_mol_from_smiles(smiles, dataset='qm9'):
     data.edge_index_dihedral_pairs = get_dihedral_pairs(data.edge_index, data=data)
 
     return data
+
+
+def smiles_to_mol(smiles: str,
+                  check_mol: bool = True):
+    """
+    Convert a SMILES string to a RDKit molecule.
+    """
+    try:
+        mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
+    except Exception:
+        return None
+    if check_mol:
+        return _check_mol(mol, smiles=smiles)
+    return mol
+
+
+def _check_mol(mol,
+               smiles=None):
+    """
+    Check if a molecule is valid.
+    """
+    # filter fragments
+    if smiles is not None:
+        if '.' in smiles:
+            return None
+    else:
+        frags = Chem.rdmolops.GetMolFrags(mol,
+                                          asMols=False)
+        if len(frags) > 1:
+            return None
+
+    # filter out mols model can't make predictions for
+    if mol.GetNumAtoms() < 4:
+        return None
+    if mol.GetNumBonds() < 4:
+        # in Lucky' original implementation
+        # this criteria is included in geom_confs.featurize_mol
+        # but not included in featurize_mol_from_smiles
+        # add it here anyway
+        return None
+    if not mol.HasSubstructMatch(dihedral_pattern):
+        return None
+    return mol
