@@ -28,8 +28,7 @@ drugs_types = {'H': 0, 'Li': 1, 'B': 2, 'C': 3, 'N': 4, 'O': 5, 'F': 6, 'Na': 7,
                'P': 11, 'S': 12, 'Cl': 13, 'K': 14, 'Ca': 15, 'V': 16, 'Cr': 17, 'Mn': 18, 'Cu': 19, 'Zn': 20,
                'Ga': 21, 'Ge': 22, 'As': 23, 'Se': 24, 'Br': 25, 'Ag': 26, 'In': 27, 'Sb': 28, 'I': 29, 'Gd': 30,
                'Pt': 31, 'Au': 32, 'Hg': 33, 'Bi': 34}
-
-
+dataset_types = {'qm9': qm9_types, 'drugs': drugs_types}
 
 
 def one_k_encoding(value, choices):
@@ -48,24 +47,29 @@ def one_k_encoding(value, choices):
 
 
 class geom_confs(Dataset):
-    def __init__(self, root, split_path, mode, transform=None, pre_transform=None, max_confs=10):
-        super(geom_confs, self).__init__(root, transform, pre_transform)
+
+    dataset = ''
+
+    def __init__(self,
+                 root,
+                 split_path,
+                 mode,
+                 transform=None,
+                 pre_transform=None,
+                 max_confs=10):
+        super().__init__(root, transform, pre_transform)
 
         self.root = root
         self.split_idx = 0 if mode == 'train' else 1 if mode == 'val' else 2
         self.split = np.load(split_path, allow_pickle=True)[self.split_idx]
-        self.bonds = {BT.SINGLE: 0, BT.DOUBLE: 1, BT.TRIPLE: 2, BT.AROMATIC: 3}
+        self.bonds = bonds
 
-        # try:
-        #     with open(osp.join(self.root, 'all_data.pickle'), 'rb') as f:
-        #         data_dict = pickle.load(f)
-        #     smiles = [list(data_dict)[i] for i in self.split]
-        #     self.pickle_files = [data_dict[smi] for smi in smiles]
-        # except FileNotFoundError:
-        self.dihedral_pairs = {} # for memoization
+        self.dihedral_pairs = {}  # for memoization
         all_files = sorted(glob.glob(osp.join(self.root, '*.pickle')))
-        self.pickle_files = [f for i, f in enumerate(all_files) if i in self.split]
+        self.pickle_files = [f for i, f in enumerate(all_files)
+                             if i in self.split]
         self.max_confs = max_confs
+        self.types = dataset_types[self.dataset]
 
     def len(self):
         # return len(self.pickle_files)  # should we change this to an integer for random sampling?
@@ -217,20 +221,14 @@ class geom_confs(Dataset):
         return data
 
 
-
 class qm9_confs(geom_confs):
-    def __init__(self, root, split_path, mode, transform=None, pre_transform=None, max_confs=10):
-        super(qm9_confs, self).__init__(root, split_path, mode, transform, pre_transform, max_confs)
-        self.types = {'H': 0, 'C': 1, 'N': 2, 'O': 3, 'F': 4}
+
+    dataset = 'qm9'
 
 
 class drugs_confs(geom_confs):
-    def __init__(self, root, split_path, mode, transform=None, pre_transform=None, max_confs=10):
-        super(drugs_confs, self).__init__(root, split_path, mode, transform, pre_transform, max_confs)
-        self.types = {'H': 0, 'Li': 1, 'B': 2, 'C': 3, 'N': 4, 'O': 5, 'F': 6, 'Na': 7, 'Mg': 8, 'Al': 9, 'Si': 10,
-                      'P': 11, 'S': 12, 'Cl': 13, 'K': 14, 'Ca': 15, 'V': 16, 'Cr': 17, 'Mn': 18, 'Cu': 19, 'Zn': 20,
-                      'Ga': 21, 'Ge': 22, 'As': 23, 'Se': 24, 'Br': 25, 'Ag': 26, 'In': 27, 'Sb': 28, 'I': 29, 'Gd': 30,
-                      'Pt': 31, 'Au': 32, 'Hg': 33, 'Bi': 34}
+
+    dataset = 'drugs'
 
 
 def construct_loader(args, modes=('train', 'val')):
@@ -259,10 +257,7 @@ def construct_loader(args, modes=('train', 'val')):
 
 def featurize_mol_from_smiles(smiles, dataset='qm9'):
 
-    if dataset == 'qm9':
-        types = qm9_types
-    elif dataset == 'drugs':
-        types = drugs_types
+    types = dataset_types[dataset]
 
     # filter fragments
     if '.' in smiles:
