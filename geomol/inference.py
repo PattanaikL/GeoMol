@@ -36,7 +36,12 @@ def construct_conformers(data, model):
         if any(x_cycle_check) and any(y_cycle_check):  # both in new cycle
 
             cycle_indices = get_current_cycle_indices(cycles, x_cycle_check, x_index)
-            cycle_avg_coords, cycle_avg_indices = smooth_cycle_coords(model, cycle_indices, new_pos, dihedral_pairs, i) # i instead of i+1
+            cycle_avg_coords, cycle_avg_indices \
+                = smooth_cycle_coords(model,
+                                      cycle_indices,
+                                      new_pos,
+                                      dihedral_pairs,
+                                      i)  # i instead of i+1
 
             # new graph
             if x_index not in Sx:
@@ -48,9 +53,11 @@ def construct_conformers(data, model):
                 p_mask = [True if a in Sx else False for a in sorted(cycle_avg_indices)]
                 q_mask = [True if a in sorted(cycle_avg_indices) else False for a in Sx]
                 p_reorder = sorted(range(len(cycle_avg_indices)), key=lambda k: cycle_avg_indices[k])
-                aligned_cycle_coords = align_coords_Kabsch(cycle_avg_coords[p_reorder].permute(1, 0, 2).unsqueeze(0), new_pos[Sx].permute(1, 0, 2), p_mask, q_mask)
+                aligned_cycle_coords = align_coords_Kabsch(
+                    cycle_avg_coords[p_reorder].permute(1, 0, 2).unsqueeze(0),
+                    new_pos[Sx].permute(1, 0, 2), p_mask, q_mask)
                 aligned_cycle_coords = aligned_cycle_coords.squeeze(0).permute(1, 0, 2)
-                cycle_avg_indices_reordered = [cycle_avg_indices[l] for l in p_reorder]
+                cycle_avg_indices_reordered = [cycle_avg_indices[i] for i in p_reorder]
 
                 # apply to all new coordinates?
                 new_pos[cycle_avg_indices_reordered] = aligned_cycle_coords
@@ -63,7 +70,7 @@ def construct_conformers(data, model):
         if any(y_cycle_check):
             cycle_indices = get_current_cycle_indices(cycles, y_cycle_check, y_index)
             cycle_added = True
-            in_cycle = len(cycle_indices)+1
+            in_cycle = len(cycle_indices) + 1
 
         # new graph
         p_coords = torch.zeros([4, model.n_model_confs, 3])
@@ -94,8 +101,8 @@ def construct_conformers(data, model):
 
         # set Y
         if cycle_added:
-            cycle_avg_coords, cycle_avg_indices = smooth_cycle_coords(model, cycle_indices, new_pos, dihedral_pairs, i+1)
-            cycle_avg_coords = cycle_avg_coords - cycle_avg_coords[cycle_avg_indices == y_index] # move y to origin
+            cycle_avg_coords, cycle_avg_indices = smooth_cycle_coords(model, cycle_indices, new_pos, dihedral_pairs, i + 1)
+            cycle_avg_coords = cycle_avg_coords - cycle_avg_coords[cycle_avg_indices == y_index]  # move y to origin
             q_idx = model.neighbors[y_index]
             q_coords_mask = [True if a in q_idx else False for a in cycle_avg_indices]
             q_coords = torch.zeros([4, model.n_model_confs, 3])
@@ -147,10 +154,10 @@ def smooth_cycle_coords(model, cycle_indices, new_pos, dihedral_pairs, cycle_sta
     cycle_len = len(cycle_indices)
 
     # get dihedral pairs corresponding to current cycle
-    cycle_pairs = dihedral_pairs[cycle_start_idx:cycle_start_idx+cycle_len]
+    cycle_pairs = dihedral_pairs[cycle_start_idx:cycle_start_idx + cycle_len]
 
     # create indices for cycle
-    cycle_i = np.arange(cycle_start_idx, cycle_start_idx+cycle_len)
+    cycle_i = np.arange(cycle_start_idx, cycle_start_idx + cycle_len)
 
     # create ordered dihedral pairs and indices which each start at a different point in the cycle
     cycle_dihedral_pair_orders = np.stack([np.roll(cycle_pairs, -i, axis=0) for i in range(len(cycle_pairs))])[:-1]
@@ -258,7 +265,11 @@ def smooth_cycle_coords(model, cycle_indices, new_pos, dihedral_pairs, cycle_sta
     p_cycle_coords_aligned = align_coords_Kabsch(p_cycle_coords, q_cycle_coords, cycle_rmsd_mask).permute(0, 2, 1, 3)
 
     # average aligned coords
-    cycle_avg_coords_ = torch.vstack([q_cycle_coords_aligned.unsqueeze(0), p_cycle_coords_aligned]) * cycle_mask[:, Sx_cycle[0]].unsqueeze(-1).unsqueeze(-1)
+    cycle_avg_coords_ \
+        = torch.vstack([q_cycle_coords_aligned.unsqueeze(0),
+                        p_cycle_coords_aligned]) \
+        * cycle_mask[:, Sx_cycle[0]].unsqueeze(-1).unsqueeze(-1)
+
     cycle_avg_coords = cycle_avg_coords_.sum(dim=0) / cycle_mask[:, Sx_cycle[0]].sum(dim=0).unsqueeze(-1).unsqueeze(-1)
 
     return cycle_avg_coords, Sx_cycle[0]
@@ -436,5 +447,3 @@ def build_gamma_rotation_inf(gamma_sin, gamma_cos, n_model_confs):
     H_gamma[:, 2, 2] = gamma_cos
 
     return H_gamma
-
-

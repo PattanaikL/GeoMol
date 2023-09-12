@@ -23,7 +23,7 @@ with open(f'../data/{dataset.upper()}/test_mols.pkl', 'rb') as f:
 
 
 def calc_performance_stats(true_confs, model_confs):
-    
+
     threshold = np.arange(0, 2.5, .125)
     rmsd_list = []
     for tc in true_confs:
@@ -42,7 +42,7 @@ def calc_performance_stats(true_confs, model_confs):
 
     coverage_precision = np.sum(rmsd_array.min(axis=0, keepdims=True) < np.expand_dims(threshold, 1), axis=1) / len(model_confs)
     amr_precision = rmsd_array.min(axis=0).mean()
-    
+
     return coverage_recall, amr_recall, coverage_precision, amr_precision
 
 
@@ -63,45 +63,45 @@ threshold_ranges = np.arange(0, 2.5, .125)  # change for QM9
 for smi, n_confs, corrected_smi in tqdm(test_data.values):
     if not Chem.MolFromSmiles(smi):
         continue
-    
+
     try:
         model_confs = model_preds[corrected_smi]
     except KeyError:
         print(f'no model prediction available: {corrected_smi}')
-        coverage_recall.append(threshold_ranges*0)
+        coverage_recall.append(threshold_ranges * 0)
         amr_recall.append(np.nan)
-        coverage_precision.append(threshold_ranges*0)
+        coverage_precision.append(threshold_ranges * 0)
         amr_precision.append(np.nan)
         test_smiles.append(smi)
         continue
 
-    # failure if model can't generate confs                                                                                                                                                         
+    # failure if model can't generate confs
     if len(model_confs) == 0:
         print(f'model failed: {smi}')
-        coverage_recall.append(threshold_ranges*0)
+        coverage_recall.append(threshold_ranges * 0)
         amr_recall.append(np.nan)
-        coverage_precision.append(threshold_ranges*0)
+        coverage_precision.append(threshold_ranges * 0)
         amr_precision.append(np.nan)
         test_smiles.append(smi)
         continue
-    
+
     try:
         true_confs = true_mols[smi]
     except KeyError:
         print(f'cannot find ground truth conformer file: {smi}')
         continue
-    
+
     # remove reacted conformers
     true_confs = clean_confs(corrected_smi, true_confs)
     if len(true_confs) == 0:
         print(f'poor ground truth conformers: {corrected_smi}')
         continue
-        
+
     stats = calc_performance_stats(true_confs, model_confs)
     if not stats:
         print(f'failure calculating stats: {smi, corrected_smi}')
         continue
-        
+
     cr, mr, cp, mp = stats
     coverage_recall.append(cr)
     amr_recall.append(mr)

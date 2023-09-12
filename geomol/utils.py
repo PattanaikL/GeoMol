@@ -200,7 +200,7 @@ def batch_dihedrals(p0, p1, p2, p3, angle=False):
 
     else:
         den = torch.linalg.norm(torch.cross(s1, s2, dim=-1), dim=-1) * torch.linalg.norm(torch.cross(s2, s3, dim=-1), dim=-1) + 1e-10
-        return sin_d_/den, cos_d_/den
+        return sin_d_ / den, cos_d_ / den
 
 
 def batch_vector_angles(xn, x, y, yn):
@@ -227,7 +227,7 @@ def von_Mises_loss(a, b, a_sin=None, b_sin=None):
     if torch.is_tensor(a_sin):
         out = a * b + a_sin * b_sin
     else:
-        out = a * b + torch.sqrt(1-a**2 + 1e-5) * torch.sqrt(1-b**2 + 1e-5)
+        out = a * b + torch.sqrt(1 - a**2 + 1e-5) * torch.sqrt(1 - b**2 + 1e-5)
     return out
 
 

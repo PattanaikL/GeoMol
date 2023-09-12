@@ -291,11 +291,10 @@ def _mol_to_features(mol,
         row += [start, end]
         col += [end, start]
         edge_type += 2 * [bonds[bond.GetBondType()]]
-        bt = tuple(
-                sorted(
-                    [bond.GetBeginAtom().GetAtomicNum(),
-                     bond.GetEndAtom().GetAtomicNum()]
-                    )), bond.GetBondTypeAsDouble()
+        bt = tuple(sorted(
+            [bond.GetBeginAtom().GetAtomicNum(),
+             bond.GetEndAtom().GetAtomicNum()]
+        )), bond.GetBondTypeAsDouble()
         bond_features += 2 * [int(bond.IsInRing()),
                               int(bond.GetIsConjugated()),
                               int(bond.GetIsAromatic())]
@@ -332,16 +331,16 @@ def featurize_mol(mol,
 
     if mol:
         x, _, edge_index, edge_attr, neighbor_dict, chiral_tag \
-                = _mol_to_features(mol, dataset=dataset)
+            = _mol_to_features(mol, dataset=dataset)
         data = Data(x=x,
                     edge_index=edge_index,
                     edge_attr=edge_attr,
                     neighbors=neighbor_dict,
                     chiral_tag=chiral_tag,
                     name=name)
-        data.edge_index_dihedral_pairs = get_dihedral_pairs(
-                                            data.edge_index,
-                                            data=data)
+        data.edge_index_dihedral_pairs \
+            = get_dihedral_pairs(data.edge_index,
+                                 data=data)
         return data
 
 

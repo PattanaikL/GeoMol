@@ -79,8 +79,8 @@ class GeoMol(nn.Module):
             self.generate_model_prediction(data.x, data.edge_index, data.edge_attr, data.batch, data.chiral_tag)
             return
 
-        x, edge_index, edge_attr, pos_list, batch, pos_mask, chiral_tag = \
-           data.x, data.edge_index, data.edge_attr, data.pos, data.batch, data.pos_mask, data.chiral_tag
+        x, edge_index, edge_attr, pos_list, batch, pos_mask, chiral_tag \
+            = data.x, data.edge_index, data.edge_attr, data.pos, data.batch, data.pos_mask, data.chiral_tag
 
         # assign neighborhoods
         self.assign_neighborhoods(x, edge_index, edge_attr, batch, data)
@@ -216,8 +216,8 @@ class GeoMol(nn.Module):
         # stochasticity
         rand_dist = torch.distributions.normal.Normal(loc=0, scale=self.random_vec_std)
         # rand_dist = torch.distributions.uniform.Uniform(torch.tensor([0.0]), torch.tensor([1.0]))
-        rand_x = rand_dist.sample([x.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device) # added squeeze
-        rand_edge = rand_dist.sample([edge_attr.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device) # added squeeze
+        rand_x = rand_dist.sample([x.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device)  # added squeeze
+        rand_edge = rand_dist.sample([edge_attr.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device)  # added squeeze
         x = torch.cat([x.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_x], dim=-1)
         edge_attr = torch.cat([edge_attr.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_edge], dim=-1)
 
@@ -234,9 +234,18 @@ class GeoMol(nn.Module):
             x_transformer = x_transformer.permute(1, 0, 2, 3).reshape(n_max, -1, self.model_dim)
             x_transformer_mask = x_mask.unsqueeze(1).repeat(1, self.n_model_confs, 1).view(-1, n_max)
 
-            x_global = self.global_embed(x_transformer, src_key_padding_mask=~x_transformer_mask).view(
-                n_max, max(batch)+1, self.n_model_confs, -1).permute(1, 0, 2, 3) * \
-                       x_transformer_mask.view(max(batch)+1, n_max, self.n_model_confs, 1)
+            x_global \
+                = self.global_embed(x_transformer,
+                                    src_key_padding_mask=~x_transformer_mask) \
+                .view(n_max,
+                      max(batch) + 1,
+                      self.n_model_confs,
+                      -1)\
+                .permute(1, 0, 2, 3) \
+                * x_transformer_mask.view(max(batch) + 1,
+                                          n_max,
+                                          self.n_model_confs,
+                                          1)
 
             # global reps for torsions
             h_mol = self.h_mol_mlp(x_global.sum(dim=1))
@@ -249,11 +258,11 @@ class GeoMol(nn.Module):
             # Use a more general version to support both new and old versions of PyTorch Geometric
             size = int(batch.max().item() + 1)
             h_mol = self.h_mol_mlp(
-                            scatter(x2,
-                                    batch,
-                                    dim=0,
-                                    dim_size=size,
-                                    reduce='sum'))
+                scatter(x2,
+                        batch,
+                        dim=0,
+                        dim_size=size,
+                        reduce='sum'))
 
         return x1, x2, h_mol
 
@@ -273,8 +282,11 @@ class GeoMol(nn.Module):
         h_ = h.permute(1, 0, 2, 3).reshape(4, self.n_neighborhoods * self.n_model_confs, self.model_dim * 2)  # CHECK RESHAPE OP
         h_mask = self.neighbor_mask.bool().unsqueeze(1).repeat(1, self.n_model_confs, 1).view(self.n_neighborhoods * self.n_model_confs, 4)
 
-        h_new = self.encoder(h_, src_key_padding_mask=~h_mask).view(4, self.n_neighborhoods, self.n_model_confs, self.model_dim * 2).permute(1, 0, 2, 3) \
-                * self.neighbor_mask.unsqueeze(-1).unsqueeze(-1)
+        h_new \
+            = self.encoder(h_, src_key_padding_mask=~h_mask) \
+            .view(4, self.n_neighborhoods, self.n_model_confs, self.model_dim * 2)\
+            .permute(1, 0, 2, 3) \
+            * self.neighbor_mask.unsqueeze(-1).unsqueeze(-1)
         unit_normals = self.coord_pred(h_new) * self.neighbor_mask.unsqueeze(-1).unsqueeze(-1)
 
         # tetrahedral chiral corrections
@@ -359,7 +371,8 @@ class GeoMol(nn.Module):
 
         # bending angles loss
         model_angles_perms = model_angles.unsqueeze(1).repeat(1, 6, 1)
-        angle_loss_perm = torch.sum(von_Mises_loss(true_angles, model_angles_perms) * true_angles.bool(), dim=-1) / (true_angles.bool().sum(dim=-1) + 1e-10)
+        angle_loss_perm = torch.sum(von_Mises_loss(true_angles, model_angles_perms) * true_angles.bool(),
+                                    dim=-1) / (true_angles.bool().sum(dim=-1) + 1e-10)
         angle_loss = scatter(angle_loss_perm.max(dim=-1).values, self.neighborhood_to_mol_map, reduce="mean")
 
         return one_hop_loss, two_hop_loss, angle_loss
@@ -418,7 +431,8 @@ class GeoMol(nn.Module):
         q_Z_translated_combos = q_Z_translated[:, qZ_idx, :]
         p_Y_alpha_combos = p_Y_alpha.unsqueeze(1).repeat(1, 9, 1, 1)
 
-        model_dihedrals_sin, model_dihedrals_cos = batch_dihedrals(p_T_alpha_combos, torch.zeros_like(p_Y_alpha_combos), p_Y_alpha_combos, q_Z_translated_combos)
+        model_dihedrals_sin, model_dihedrals_cos = batch_dihedrals(
+            p_T_alpha_combos, torch.zeros_like(p_Y_alpha_combos), p_Y_alpha_combos, q_Z_translated_combos)
         model_dihedrals_sin = model_dihedrals_sin * self.dihedral_mask.unsqueeze(-1)
         model_dihedrals_cos = model_dihedrals_cos * self.dihedral_mask.unsqueeze(-1)
         model_dihedrals = torch.stack([model_dihedrals_sin, model_dihedrals_cos], dim=0)
@@ -480,12 +494,14 @@ class GeoMol(nn.Module):
         true_dihedral_yn_coords = true_dihedral_coords[:, 3][~self.y_map_to_neighbor_x.bool(), :].view(-1, 3, 6, self.n_true_confs, 3)[:, qZ_idx, :]
 
         # calculate true dihedrals
-        true_dihedrals_sin, true_dihedrals_cos = batch_dihedrals(true_dihedral_xn_coords, true_dihedral_x_coords, true_dihedral_y_coords, true_dihedral_yn_coords)
+        true_dihedrals_sin, true_dihedrals_cos = batch_dihedrals(
+            true_dihedral_xn_coords, true_dihedral_x_coords, true_dihedral_y_coords, true_dihedral_yn_coords)
         true_dihedrals_sin = true_dihedrals_sin * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1)
         true_dihedrals_cos = true_dihedrals_cos * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1)
         true_dihedrals = torch.stack([true_dihedrals_sin, true_dihedrals_cos], dim=0)
         # true_dihedrals = batch_vector_angles(true_dihedral_xn_coords, true_dihedral_x_coords, true_dihedral_y_coords,
-        #                                      true_dihedral_yn_coords).view(-1, 9, 6, self.n_true_confs) * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1)
+        # true_dihedral_yn_coords).view(-1, 9, 6, self.n_true_confs) *
+        # self.dihedral_mask.unsqueeze(-1).unsqueeze(-1)
 
         # calculate true three-hop distances
         true_three_hop = torch.linalg.norm(true_dihedral_xn_coords - true_dihedral_yn_coords, dim=-1) * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1)
@@ -514,7 +530,12 @@ class GeoMol(nn.Module):
 
         # dihedral loss
         model_dihedrals_perms = model_dihedrals.unsqueeze(-1).repeat(1, 1, 1, 6)
-        dihedral_loss_perms = torch.sum(von_Mises_loss(true_dihedrals[1], model_dihedrals_perms[1], true_dihedrals[0], model_dihedrals_perms[0]) * self.dihedral_mask.unsqueeze(-1), dim=-2) / (self.dihedral_mask.sum(dim=-1, keepdim=True) + 1e-10)
+        dihedral_loss_perms = torch.sum(von_Mises_loss(true_dihedrals[1],
+                                                       model_dihedrals_perms[1],
+                                                       true_dihedrals[0],
+                                                       model_dihedrals_perms[0]) * self.dihedral_mask.unsqueeze(-1),
+                                        dim=-2) / (self.dihedral_mask.sum(dim=-1,
+                                                                          keepdim=True) + 1e-10)
         dihedral_loss = scatter(dihedral_loss_perms.max(dim=-1).values, self.neighborhood_pairs_to_mol_map, reduce="mean")
 
         # three-hop distance loss
@@ -565,7 +586,8 @@ class GeoMol(nn.Module):
         q_X_prime = q_H[self.y_map_to_neighbor_x.bool()]
 
         transform_matrix = torch.diag(torch.tensor([-1., -1., 1.]).to(self.device)).unsqueeze(0).unsqueeze(0).unsqueeze(0)
-        q_Z_translated = torch.matmul(transform_matrix, q_Z_prime.unsqueeze(-1)).squeeze(-1) + p_Y_prime.unsqueeze(1)  # broadcast over not coordinates
+        q_Z_translated = torch.matmul(transform_matrix,
+                                      q_Z_prime.unsqueeze(-1)).squeeze(-1) + p_Y_prime.unsqueeze(1)  # broadcast over not coordinates
 
         # calculate alpha
         dihedral_h_mol = h_mol[batch[self.dihedral_pairs[0]]]  # (n_dihedral_pairs, n_model_confs. model_dim/2)
@@ -574,11 +596,13 @@ class GeoMol(nn.Module):
         if self. random_alpha:
             rand_dist = torch.distributions.normal.Normal(loc=0, scale=self.random_vec_std)
             rand_alpha = rand_dist.sample([self.n_dihedral_pairs, self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device)
-            alpha = self.alpha_mlp(torch.cat([dihedral_x_node_reps, dihedral_y_node_reps, dihedral_h_mol, rand_alpha], dim=-1)) + \
-                    self.alpha_mlp(torch.cat([dihedral_y_node_reps, dihedral_x_node_reps, dihedral_h_mol, rand_alpha], dim=-1))
+            alpha \
+                = self.alpha_mlp(torch.cat([dihedral_x_node_reps, dihedral_y_node_reps, dihedral_h_mol, rand_alpha], dim=-1)) \
+                + self.alpha_mlp(torch.cat([dihedral_y_node_reps, dihedral_x_node_reps, dihedral_h_mol, rand_alpha], dim=-1))
         else:
-            alpha = self.alpha_mlp(torch.cat([dihedral_x_node_reps, dihedral_y_node_reps, dihedral_h_mol], dim=-1)) + \
-                    self.alpha_mlp(torch.cat([dihedral_y_node_reps, dihedral_x_node_reps, dihedral_h_mol], dim=-1))
+            alpha \
+                = self.alpha_mlp(torch.cat([dihedral_x_node_reps, dihedral_y_node_reps, dihedral_h_mol], dim=-1)) \
+                + self.alpha_mlp(torch.cat([dihedral_y_node_reps, dihedral_x_node_reps, dihedral_h_mol], dim=-1))
         alpha = alpha.view(self.n_dihedral_pairs, self.n_model_confs, 1)
         self.v_star = torch.cat([torch.cos(alpha), torch.sin(alpha)], dim=-1)
 
@@ -596,14 +620,17 @@ class GeoMol(nn.Module):
         q_reps = dihedral_y_neighbor_reps[~self.y_map_to_neighbor_x.bool()].view(-1, 3, self.n_model_confs, self.model_dim)
         cx_reps = dihedral_x_node_reps.unsqueeze(1).repeat(1, 9, 1, 1)
         cy_reps = dihedral_y_node_reps.unsqueeze(1).repeat(1, 9, 1, 1)
-        self.c_ij = self.c_mlp(torch.cat([p_reps[:, pT_idx], cx_reps, q_reps[:, qZ_idx], cy_reps], dim=-1)) + \
-                    self.c_mlp(torch.cat([q_reps[:, qZ_idx], cy_reps, p_reps[:, pT_idx], cx_reps], dim=-1))
+        self.c_ij \
+            = self.c_mlp(torch.cat([p_reps[:, pT_idx], cx_reps, q_reps[:, qZ_idx], cy_reps], dim=-1)) \
+            + self.c_mlp(torch.cat([q_reps[:, qZ_idx], cy_reps, p_reps[:, pT_idx], cx_reps], dim=-1))
 
         # calculate gamma sin and cos
         A_ij = self.build_A_matrix(XYTi_XYZj_curr_sin, XYTi_XYZj_curr_cos) * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
         A_curr = torch.sum(A_ij * self.c_ij.unsqueeze(-1), dim=1)
         determinants = torch.det(A_curr) + 1e-10
-        A_curr_inv_ = A_curr.view(self.n_dihedral_pairs, self.n_model_confs, 4)[:, :, [3, 1, 2, 0]] * torch.tensor([[[1., -1., -1., 1.]]]).to(self.device)
+        A_curr_inv_ = A_curr.view(self.n_dihedral_pairs,
+                                  self.n_model_confs,
+                                  4)[:, :, [3, 1, 2, 0]] * torch.tensor([[[1., -1., -1., 1.]]]).to(self.device)
         A_curr_inv = (A_curr_inv_ / determinants.unsqueeze(-1)).view(self.n_dihedral_pairs, self.n_model_confs, 2, 2)
 
         A_curr_inv_v_star = torch.matmul(A_curr_inv, self.v_star.unsqueeze(-1)).squeeze(-1)

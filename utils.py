@@ -19,8 +19,10 @@ sns.set('poster', rc={"xtick.bottom": True, "ytick.left": True,
 sns.color_palette('husl')
 local_modules = ['gnn', 'encoder', 'coord_pred', 'd_mlp']
 
+
 class Standardizer:
     """Z-score standardization"""
+
     def __init__(self, mean, std):
         self.mean = mean
         self.std = std
@@ -173,12 +175,19 @@ def get_optimizer_and_scheduler(args, model, train_data_size):
 
     if args.scheduler == 'plateau':
         if args.separate_opts:
-            scheduling_fn = lambda opt: torch.optim.lr_scheduler.ReduceLROnPlateau(opt, mode='min', factor=0.7,
-                                                                                   patience=5, min_lr=args.lr / 100)
+            def scheduling_fn(opt):
+                return torch.optim.lr_scheduler.ReduceLROnPlateau(opt,
+                                                                  mode='min',
+                                                                  factor=0.7,
+                                                                  patience=5,
+                                                                  min_lr=args.lr / 100)
             scheduler = MultipleScheduler(optimizer, scheduling_fn)
         else:
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.7,
-                                                                   patience=5, min_lr=args.lr/100)
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                                   mode='min',
+                                                                   factor=0.7,
+                                                                   patience=5,
+                                                                   min_lr=args.lr / 100)
     elif args.scheduler == 'noam':
         scheduler = build_lr_scheduler(optimizer=optimizer, args=args, train_data_size=train_data_size)
     else:
