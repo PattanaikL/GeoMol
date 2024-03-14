@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 import torch_geometric as tg
 from torch_geometric.utils import degree
@@ -17,6 +19,8 @@ angle_combos = torch.LongTensor([[0, 1],
                                  [0, 3],
                                  [1, 3],
                                  [2, 3]]).to(device)
+
+model_path = Path(__file__).parents[1] / "trained_models"
 
 
 def get_neighbor_ids(data):
