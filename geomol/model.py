@@ -17,7 +17,7 @@ DEBUG_NEIGHBORHOOD_PAIRS = False
 
 
 class GeoMol(nn.Module):
-    def __init__(self, hyperparams, num_node_features, num_edge_features, device=None):
+    def __init__(self, hyperparams, num_node_features, num_edge_features):
         super(GeoMol, self).__init__()
 
         self.model_dim = hyperparams['model_dim']
@@ -27,10 +27,6 @@ class GeoMol(nn.Module):
         self.loss_type = hyperparams['loss_type']
         self.teacher_force = hyperparams['teacher_force']
         self.random_alpha = hyperparams['random_alpha']
-        if device is None:
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        else:
-            self.device = torch.device(device)
 
         self.gnn = GNN(node_dim=num_node_features + self.random_vec_dim,
                        edge_dim=num_edge_features + self.random_vec_dim,
@@ -110,18 +106,18 @@ class GeoMol(nn.Module):
 
         pos_mask_L2 = pos_mask.view(molecule_loss.size(2), self.n_true_confs).t()
         pos_mask_L1 = pos_mask_L2.unsqueeze(1).repeat(1, self.n_model_confs, 1)
-        molecule_loss = torch.where(pos_mask_L1 == 1, molecule_loss, torch.FloatTensor([9e99]).to(self.device))
+        molecule_loss = torch.where(pos_mask_L1 == 1, molecule_loss, torch.FloatTensor([9e99], device=molecule_loss.device))
 
         if self.loss_type == 'implicit_mle':
 
             if DEBUG_NEIGHBORHOOD_PAIRS or self.teacher_force:
                 L1 = torch.where(pos_mask_L2 == 1, torch.min(molecule_loss, dim=0).values,
-                                 torch.FloatTensor([0]).to(self.device)).sum(dim=0) / pos_mask_L2.sum(dim=0)
+                                 torch.FloatTensor([0], device=pos_mask_L2.device)).sum(dim=0) / pos_mask_L2.sum(dim=0)
             else:
                 L1 = torch.min(molecule_loss, dim=0).values.sum(dim=0) / self.n_model_confs
 
             L2 = torch.where(pos_mask_L2 == 1, torch.min(molecule_loss, dim=1).values,
-                             torch.FloatTensor([0]).to(self.device)).sum(dim=0) / pos_mask_L2.sum(dim=0)
+                             torch.FloatTensor([0], device=pos_mask_L2.device)).sum(dim=0) / pos_mask_L2.sum(dim=0)
 
             # logging
             self.run_writer_mle(True if L1.mean() > L2.mean() else False, molecule_loss, pos_mask_L2)
@@ -142,13 +138,13 @@ class GeoMol(nn.Module):
                 if self.teacher_force:
                     cost_mat_i = cost_mat_detach[i, :n_true_confs_batch[i], :n_true_confs_batch[i]]
                     ot_mat = ot.emd(a=H_1, b=H_1, M=np.max(np.abs(cost_mat_i)) + cost_mat_i, numItermax=10000)
-                    ot_mat_attached = torch.tensor(ot_mat, device=self.device, requires_grad=False).float()
+                    ot_mat_attached = torch.tensor(ot_mat, device=molecule_loss.device, requires_grad=False).float()
                     ot_mat_list.append(ot_mat_attached)
                     loss += torch.sum(ot_mat_attached * molecule_loss[:n_true_confs_batch[i], :n_true_confs_batch[i], i])
                 else:
                     cost_mat_i = cost_mat_detach[i, :n_true_confs_batch[i]]
                     ot_mat = ot.emd(a=H_1, b=H_2, M=np.max(np.abs(cost_mat_i)) + cost_mat_i, numItermax=10000)
-                    ot_mat_attached = torch.tensor(ot_mat, device=self.device, requires_grad=False).float()
+                    ot_mat_attached = torch.tensor(ot_mat, device=molecule_loss.device, requires_grad=False).float()
                     ot_mat_list.append(ot_mat_attached)
                     loss += torch.sum(ot_mat_attached * molecule_loss[:n_true_confs_batch[i], :, i])
 
@@ -168,13 +164,13 @@ class GeoMol(nn.Module):
         self.n_dihedral_pairs = len(self.dihedral_pairs.t())
 
         # mask for neighbors
-        self.neighbor_mask = torch.zeros([self.n_neighborhoods, 4]).to(self.device)
+        self.neighbor_mask = torch.zeros([self.n_neighborhoods, 4], device=x.device)
 
         # maps node index to hidden index as given by self.neighbors
         self.x_to_h_map = torch.zeros(x.size(0))
 
         # maps local neighborhood to batch molecule
-        self.neighborhood_to_mol_map = torch.zeros(self.n_neighborhoods, dtype=torch.int64).to(self.device)
+        self.neighborhood_to_mol_map = torch.zeros(self.n_neighborhoods, dtype=torch.int64, device=x.device)
 
         for i, (a, n) in enumerate(self.neighbors.items()):
             self.x_to_h_map[a] = i
@@ -183,18 +179,18 @@ class GeoMol(nn.Module):
             self.neighborhood_to_mol_map[i] = batch[a]
 
         # maps which atom in (x,y) corresponds to the same atom in (y,x) for each dihedral pair
-        self.x_map_to_neighbor_y = torch.zeros([self.n_dihedral_pairs, 4]).to(self.device)
-        self.y_map_to_neighbor_x = torch.zeros([self.n_dihedral_pairs, 4]).to(self.device)
+        self.x_map_to_neighbor_y = torch.zeros_like(self.neighbor_mask)
+        self.y_map_to_neighbor_x = torch.zeros_like(self.neighbor_mask)
 
         # neighbor mask but for dihedral pairs
-        self.dihedral_x_mask = torch.zeros([self.n_dihedral_pairs, 4]).to(self.device)
-        self.dihedral_y_mask = torch.zeros([self.n_dihedral_pairs, 4]).to(self.device)
+        self.dihedral_x_mask = torch.zeros_like(self.neighbor_mask)
+        self.dihedral_y_mask = torch.zeros_like(self.neighbor_mask)
 
         # maps neighborhood pair to batch molecule
-        self.neighborhood_pairs_to_mol_map = torch.zeros(self.n_dihedral_pairs, dtype=torch.int64).to(self.device)
+        self.neighborhood_pairs_to_mol_map = torch.zeros(self.n_dihedral_pairs, dtype=torch.int64, device=x.device)
 
         # indicates which type of bond is formed by X-Y
-        self.xy_bond_type = torch.zeros([self.n_dihedral_pairs, 4]).to(self.device)
+        self.xy_bond_type = torch.zeros_like(self.neighbor_mask)
 
         for i, (s, e) in enumerate(self.dihedral_pairs.t()):
             # this indicates which neighbor is the correct x <--> y map (see overleaf doc)
@@ -219,8 +215,8 @@ class GeoMol(nn.Module):
         # stochasticity
         rand_dist = torch.distributions.normal.Normal(loc=0, scale=self.random_vec_std)
         # rand_dist = torch.distributions.uniform.Uniform(torch.tensor([0.0]), torch.tensor([1.0]))
-        rand_x = rand_dist.sample([x.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device)  # added squeeze
-        rand_edge = rand_dist.sample([edge_attr.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device)  # added squeeze
+        rand_x = rand_dist.sample([x.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(x.device)  # added squeeze
+        rand_edge = rand_dist.sample([edge_attr.size(0), self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(edge_attr.device)  # added squeeze
         x = torch.cat([x.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_x], dim=-1)
         edge_attr = torch.cat([edge_attr.unsqueeze(1).repeat(1, self.n_model_confs, 1), rand_edge], dim=-1)
 
@@ -271,8 +267,8 @@ class GeoMol(nn.Module):
 
     def model_local_stats(self, x, chiral_tag):
 
-        n_h = torch.zeros([self.n_neighborhoods, 4, self.n_model_confs, self.model_dim]).to(self.device)
-        x_h = torch.zeros([self.n_neighborhoods, self.n_model_confs, self.model_dim]).to(self.device)
+        n_h = torch.zeros([self.n_neighborhoods, 4, self.n_model_confs, self.model_dim], device=x.device)
+        x_h = torch.zeros([self.n_neighborhoods, self.n_model_confs, self.model_dim], device=x.device)
 
         for i, (a, n) in enumerate(self.neighbors.items()):
             n_h[i, 0:len(n), :] = x[n]
@@ -322,7 +318,7 @@ class GeoMol(nn.Module):
                                                                                    self.neighbor_mask)
 
         if self.teacher_force:
-            R = random_rotation_matrix([self.n_neighborhoods, 1, self.n_model_confs]).to(self.device)
+            R = random_rotation_matrix([self.n_neighborhoods, 1, self.n_model_confs]).to(self.true_local_coords.device)
             self.model_local_coords = torch.matmul(R, self.true_local_coords[:, 0].unsqueeze(-1)).squeeze(-1)
 
         return model_one_hop, model_two_hop, model_angles
@@ -342,13 +338,13 @@ class GeoMol(nn.Module):
         """
 
         n_neighborhoods = len(self.neighbors)
-        self.true_local_coords = torch.zeros(n_neighborhoods, 6, 4, self.n_true_confs, 3).to(self.device)
+        self.true_local_coords = torch.zeros(n_neighborhoods, 6, 4, self.n_true_confs, 3, device=pos.device)
 
         for i, (a, n) in enumerate(self.neighbors.items()):
 
             # permutations for symmetric hydrogens
             n_perms = n.unsqueeze(0).repeat(6, 1)
-            perms = torch.tensor(list(permutations(n[self.leaf_hydrogens[a]]))).to(self.device)
+            perms = torch.tensor(list(permutations(n[self.leaf_hydrogens[a]])), device=n_perms.device)
             if perms.size(1) != 0:
                 n_perms[0:len(perms), self.leaf_hydrogens[a]] = perms
 
@@ -391,13 +387,13 @@ class GeoMol(nn.Module):
         :return: tuple of true stats (dihedral and three-hop), each with size (n_dihedral_pairs, 9, n_true_confs)
         """
 
-        dihedral_x_neighbors = torch.zeros([self.n_dihedral_pairs, 4, self.n_model_confs, 3]).to(self.device)
-        dihedral_x_node_reps = torch.zeros([self.n_dihedral_pairs, self.n_model_confs, self.model_dim]).to(self.device)
-        dihedral_x_neighbor_reps = torch.zeros([self.n_dihedral_pairs, 4, self.n_model_confs, self.model_dim]).to(self.device)
+        dihedral_x_neighbors = torch.zeros([self.n_dihedral_pairs, 4, self.n_model_confs, 3], device=x.device)
+        dihedral_x_node_reps = torch.zeros([self.n_dihedral_pairs, self.n_model_confs, self.model_dim], device=x.device)
+        dihedral_x_neighbor_reps = torch.zeros([self.n_dihedral_pairs, 4, self.n_model_confs, self.model_dim], device=x.device)
 
-        dihedral_y_neighbors = torch.zeros([self.n_dihedral_pairs, 4, self.n_model_confs, 3]).to(self.device)
-        dihedral_y_node_reps = torch.zeros([self.n_dihedral_pairs, self.n_model_confs, self.model_dim]).to(self.device)
-        dihedral_y_neighbor_reps = torch.zeros([self.n_dihedral_pairs, 4, self.n_model_confs, self.model_dim]).to(self.device)
+        dihedral_y_neighbors = torch.zeros_like(dihedral_x_neighbors)
+        dihedral_y_node_reps = torch.zeros_like(dihedral_x_node_reps)
+        dihedral_y_neighbor_reps = torch.zeros_like(dihedral_x_neighbor_reps)
 
         for i, (s, e) in enumerate(self.dihedral_pairs.t()):
 
@@ -465,7 +461,7 @@ class GeoMol(nn.Module):
         """
 
         n_dihedral_pairs = len(self.dihedral_pairs.t())
-        true_dihedral_coords = torch.zeros([n_dihedral_pairs, 4, 4, 6, self.n_true_confs, 3]).to(self.device)
+        true_dihedral_coords = torch.zeros([n_dihedral_pairs, 4, 4, 6, self.n_true_confs, 3], device=pos.device)
 
         for i, (s, e) in enumerate(self.dihedral_pairs.t()):
             # construct true coordinates (order is x_n, x, y, y_n)
@@ -473,8 +469,8 @@ class GeoMol(nn.Module):
             y_neighbor_map_perms = self.neighbors[e.item()].unsqueeze(1).repeat(1, 6)
 
             # permutations for symmetric hydrogens
-            x_perms = torch.tensor(list(permutations(self.neighbors[s.item()][self.leaf_hydrogens[s.item()]]))).t().to(self.device)
-            y_perms = torch.tensor(list(permutations(self.neighbors[e.item()][self.leaf_hydrogens[e.item()]]))).t().to(self.device)
+            x_perms = torch.tensor(list(permutations(self.neighbors[s.item()][self.leaf_hydrogens[s.item()]]))).t().to(pos.device)
+            y_perms = torch.tensor(list(permutations(self.neighbors[e.item()][self.leaf_hydrogens[e.item()]]))).t().to(pos.device)
 
             if x_perms.size(0) != 0:
                 x_neighbor_map_perms[self.leaf_hydrogens[s.item()], 0:x_perms.size(1)] = x_perms
@@ -588,7 +584,7 @@ class GeoMol(nn.Module):
         p_Y_prime = p_H[self.x_map_to_neighbor_y.bool()]
         q_X_prime = q_H[self.y_map_to_neighbor_x.bool()]
 
-        transform_matrix = torch.diag(torch.tensor([-1., -1., 1.]).to(self.device)).unsqueeze(0).unsqueeze(0).unsqueeze(0)
+        transform_matrix = torch.diag(torch.tensor([-1., -1., 1.], device=q_Z_prime.device)).unsqueeze(0).unsqueeze(0).unsqueeze(0)
         q_Z_translated = torch.matmul(transform_matrix,
                                       q_Z_prime.unsqueeze(-1)).squeeze(-1) + p_Y_prime.unsqueeze(1)  # broadcast over not coordinates
 
@@ -598,7 +594,7 @@ class GeoMol(nn.Module):
         # more stochasticity!
         if self. random_alpha:
             rand_dist = torch.distributions.normal.Normal(loc=0, scale=self.random_vec_std)
-            rand_alpha = rand_dist.sample([self.n_dihedral_pairs, self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(self.device)
+            rand_alpha = rand_dist.sample([self.n_dihedral_pairs, self.n_model_confs, self.random_vec_dim]).squeeze(-1).to(dihedral_x_node_reps.device)
             alpha \
                 = self.alpha_mlp(torch.cat([dihedral_x_node_reps, dihedral_y_node_reps, dihedral_h_mol, rand_alpha], dim=-1)) \
                 + self.alpha_mlp(torch.cat([dihedral_y_node_reps, dihedral_x_node_reps, dihedral_h_mol, rand_alpha], dim=-1))
@@ -628,12 +624,12 @@ class GeoMol(nn.Module):
             + self.c_mlp(torch.cat([q_reps[:, qZ_idx], cy_reps, p_reps[:, pT_idx], cx_reps], dim=-1))
 
         # calculate gamma sin and cos
-        A_ij = self.build_A_matrix(XYTi_XYZj_curr_sin, XYTi_XYZj_curr_cos) * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+        A_ij = self.build_A_matrix(XYTi_XYZj_curr_sin, XYTi_XYZj_curr_cos).to(self.dihedral_mask.device) * self.dihedral_mask.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
         A_curr = torch.sum(A_ij * self.c_ij.unsqueeze(-1), dim=1)
         determinants = torch.det(A_curr) + 1e-10
         A_curr_inv_ = A_curr.view(self.n_dihedral_pairs,
                                   self.n_model_confs,
-                                  4)[:, :, [3, 1, 2, 0]] * torch.tensor([[[1., -1., -1., 1.]]]).to(self.device)
+                                  4)[:, :, [3, 1, 2, 0]] * torch.tensor([[[1., -1., -1., 1.]]], device=A_curr.device)
         A_curr_inv = (A_curr_inv_ / determinants.unsqueeze(-1)).view(self.n_dihedral_pairs, self.n_model_confs, 2, 2)
 
         A_curr_inv_v_star = torch.matmul(A_curr_inv, self.v_star.unsqueeze(-1)).squeeze(-1)
@@ -641,7 +637,7 @@ class GeoMol(nn.Module):
         gamma_cos, gamma_sin = v_gamma.split(1, dim=-1)
 
         # rotate p_coords by gamma
-        H_gamma = self.build_alpha_rotation(gamma_sin.squeeze(-1), gamma_cos.squeeze(-1))
+        H_gamma = self.build_alpha_rotation(gamma_sin.squeeze(-1), gamma_cos.squeeze(-1)).to(p_T_prime.device)
         p_T_alpha = torch.matmul(H_gamma.unsqueeze(1), p_T_prime.unsqueeze(-1)).squeeze(-1)
 
         return q_Z_prime, p_T_alpha, p_Y_prime, q_Z_translated
@@ -653,7 +649,7 @@ class GeoMol(nn.Module):
         :param alpha: predicted values of torsion parameter alpha (n_dihedral_pairs, n_model_confs)
         :return: alpha rotation matrix (n_dihedral_pairs, n_model_confs, 3, 3)
         """
-        H_alpha = torch.FloatTensor([[[[1, 0, 0], [0, 0, 0], [0, 0, 0]]]]).repeat(self.n_dihedral_pairs, self.n_model_confs, 1, 1).to(self.device)
+        H_alpha = torch.FloatTensor([[[[1, 0, 0], [0, 0, 0], [0, 0, 0]]]]).repeat(self.n_dihedral_pairs, self.n_model_confs, 1, 1)
 
         if torch.is_tensor(alpha_cos):
             H_alpha[:, :, 1, 1] = alpha_cos
@@ -670,7 +666,7 @@ class GeoMol(nn.Module):
 
     def build_A_matrix(self, curr_sin, curr_cos):
 
-        A_ij = torch.FloatTensor([[[[[0, 0], [0, 0]]]]]).repeat(self.n_dihedral_pairs, 9, self.n_model_confs, 1, 1).to(self.device)
+        A_ij = torch.FloatTensor([[[[[0, 0], [0, 0]]]]]).repeat(self.n_dihedral_pairs, 9, self.n_model_confs, 1, 1)
         A_ij[:, :, :, 0, 0] = curr_cos
         A_ij[:, :, :, 0, 1] = curr_sin
         A_ij[:, :, :, 1, 0] = curr_sin
