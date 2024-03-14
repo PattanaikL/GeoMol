@@ -179,18 +179,18 @@ class GeoMol(nn.Module):
             self.neighborhood_to_mol_map[i] = batch[a]
 
         # maps which atom in (x,y) corresponds to the same atom in (y,x) for each dihedral pair
-        self.x_map_to_neighbor_y = torch.zeros_like(self.neighbor_mask)
-        self.y_map_to_neighbor_x = torch.zeros_like(self.neighbor_mask)
+        self.x_map_to_neighbor_y = torch.zeros([self.n_dihedral_pairs, 4], device=x.device)
+        self.y_map_to_neighbor_x = torch.zeros_like(self.x_map_to_neighbor_y)
 
         # neighbor mask but for dihedral pairs
-        self.dihedral_x_mask = torch.zeros_like(self.neighbor_mask)
-        self.dihedral_y_mask = torch.zeros_like(self.neighbor_mask)
+        self.dihedral_x_mask = torch.zeros_like(self.x_map_to_neighbor_y)
+        self.dihedral_y_mask = torch.zeros_like(self.dihedral_x_mask)
 
         # maps neighborhood pair to batch molecule
         self.neighborhood_pairs_to_mol_map = torch.zeros(self.n_dihedral_pairs, dtype=torch.int64, device=x.device)
 
         # indicates which type of bond is formed by X-Y
-        self.xy_bond_type = torch.zeros_like(self.neighbor_mask)
+        self.xy_bond_type = torch.zeros_like(self.x_map_to_neighbor_y)
 
         for i, (s, e) in enumerate(self.dihedral_pairs.t()):
             # this indicates which neighbor is the correct x <--> y map (see overleaf doc)
