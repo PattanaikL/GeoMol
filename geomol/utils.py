@@ -6,21 +6,20 @@ from torch_geometric.utils import degree
 import networkx as nx
 from geomol.cycle_utils import get_current_cycle_indices
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model_path = Path(__file__).parents[1] / "trained_models"
+
 angle_mask_ref = torch.LongTensor([[0, 0, 0, 0, 0, 0],
                                    [0, 0, 0, 0, 0, 0],
                                    [1, 0, 0, 0, 0, 0],
                                    [1, 1, 1, 0, 0, 0],
-                                   [1, 1, 1, 1, 1, 1]]).to(device)
+                                   [1, 1, 1, 1, 1, 1]])
 
 angle_combos = torch.LongTensor([[0, 1],
                                  [0, 2],
                                  [1, 2],
                                  [0, 3],
                                  [1, 3],
-                                 [2, 3]]).to(device)
-
-model_path = Path(__file__).parents[1] / "trained_models"
+                                 [2, 3]])
 
 
 def get_neighbor_ids(data):
@@ -123,7 +122,7 @@ def get_dihedral_pairs(edge_index, data):
 
         keep.append(pair)
 
-    keep = [t.to(device) for t in keep]
+    keep = [t for t in keep]
     return torch.stack(keep).t()
 
 
@@ -165,6 +164,12 @@ def batch_angles_from_coords(coords, mask):
     """
     Given coordinates, compute all local neighborhood angles
     """
+    device = coords.device
+
+    global angle_mask_ref, angle_combos
+    angle_mask_ref = angle_mask_ref.to(device)
+    angle_combos = angle_combos.to(device)
+
     if coords.dim() == 4:
         all_possible_combos = coords[:, angle_combos]
         v_a, v_b = all_possible_combos.split(1, dim=2)  # does one of these need to be negative?
