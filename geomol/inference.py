@@ -107,7 +107,7 @@ def construct_conformers(data, model, device=None):
             q_idx = model.neighbors[y_index]
             q_coords_mask = [True if a in q_idx else False for a in cycle_avg_indices]
             q_coords = torch.zeros([4, model.n_model_confs, 3], device=device)
-            q_reorder = np.argsort([np.where(a == q_idx)[0][0] for a in torch.tensor(cycle_avg_indices)[q_coords_mask]])
+            q_reorder = torch.argsort(torch.tensor([torch.where(a == q_idx)[0][0] for a in torch.tensor(cycle_avg_indices)[q_coords_mask]]))
             q_coords[0:sum(q_coords_mask)] = cycle_avg_coords[q_coords_mask][q_reorder]
             new_pos_Sy = cycle_avg_coords.clone()
             Sy = cycle_avg_indices
