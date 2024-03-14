@@ -6,3 +6,5 @@ dependencies:
   - rdkit >=2020.03.2
   - networkx
   - pot
+  - yaml
+  - pyyaml
