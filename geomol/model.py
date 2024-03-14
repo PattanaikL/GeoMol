@@ -17,7 +17,7 @@ DEBUG_NEIGHBORHOOD_PAIRS = False
 
 
 class GeoMol(nn.Module):
-    def __init__(self, hyperparams, num_node_features, num_edge_features):
+    def __init__(self, hyperparams, num_node_features, num_edge_features, device=None):
         super(GeoMol, self).__init__()
 
         self.model_dim = hyperparams['model_dim']
@@ -27,7 +27,10 @@ class GeoMol(nn.Module):
         self.loss_type = hyperparams['loss_type']
         self.teacher_force = hyperparams['teacher_force']
         self.random_alpha = hyperparams['random_alpha']
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if device is None:
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        else:
+            self.device = torch.device(device)
 
         self.gnn = GNN(node_dim=num_node_features + self.random_vec_dim,
                        edge_dim=num_edge_features + self.random_vec_dim,
