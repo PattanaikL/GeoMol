@@ -100,6 +100,7 @@ class NoamLR(_LRScheduler):
     total_epochs * steps_per_epoch). This is roughly based on the learning rate
     schedule from Attention is All You Need, section 5.3 (https://arxiv.org/abs/1706.03762).
     """
+
     def __init__(self,
                  optimizer: Optimizer,
                  warmup_epochs: List[Union[float, int]],
@@ -119,8 +120,12 @@ class NoamLR(_LRScheduler):
         :param max_lr: The maximum learning rate (achieved after warmup_epochs).
         :param final_lr: The final learning rate (achieved after total_epochs).
         """
-        assert len(optimizer.param_groups) == len(warmup_epochs) == len(total_epochs) == len(init_lr) == \
-               len(max_lr) == len(final_lr)
+        assert len(optimizer.param_groups) \
+            == len(warmup_epochs) \
+            == len(total_epochs) \
+            == len(init_lr) \
+            == len(max_lr) \
+            == len(final_lr)
 
         self.num_lrs = len(optimizer.param_groups)
 

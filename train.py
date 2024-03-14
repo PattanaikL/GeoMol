@@ -6,11 +6,11 @@ import torch
 import numpy as np
 import random
 
-from model.model import GeoMol
-from model.training import train, test, NoamLR
+from geomol.model import GeoMol
+from geomol.training import train, test, NoamLR
 from utils import create_logger, dict_to_str, plot_train_val_loss, save_yaml_file, get_optimizer_and_scheduler
-from model.featurization import construct_loader
-from model.parsing import parse_train_args, set_hyperparams
+from geomol.featurization import construct_loader
+from geomol.parsing import parse_train_args, set_hyperparams
 
 from torch.utils.tensorboard import SummaryWriter
 import resource
